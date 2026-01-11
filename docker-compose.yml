@@ -1,0 +1,10 @@
+services:
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+
+  api:
+    build: ./apps/api
+    env_file: .env
+    ports: ["8000:8000"]
+    depends_on: [mongo]
