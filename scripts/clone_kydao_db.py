@@ -320,6 +320,8 @@ def parse_home_page(base_url: str) -> None:
     while player_queue:
         player = player_queue.pop(0)
         logging.info("Fetching player games %s", player.name)
+        if not player.url:
+            continue
         for page in parse_pagination_links(player.url):
             games_on_page = parse_game_links(page.url)
             for g in games_on_page:
