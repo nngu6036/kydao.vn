@@ -6,6 +6,7 @@ services:
       - "27017:27017"
 
   api:
+    image: chess-elo-api
     build:
       context: ../apps/api
     container_name: chess-elo-api
@@ -19,6 +20,7 @@ services:
       - mongo
 
   content-web:
+    image: chess-elo-content-web
     build:
       context: ../apps/content-web
     container_name: chess-elo-content-web
