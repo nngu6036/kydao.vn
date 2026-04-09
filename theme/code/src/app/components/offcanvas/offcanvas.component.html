@@ -1,0 +1,96 @@
+<div class="fix-area">
+    <div class="offcanvas__info">
+        <div class="offcanvas__wrapper">
+            <div class="offcanvas__content">
+                <div class="offcanvas__top mb-5 d-flex justify-content-between align-items-center">
+                    <div class="offcanvas__logo">
+                        <a routerLink="/">
+                            <img src="assets/images/logo/logoIcon.svg" alt="logo-img">
+                        </a>
+                    </div>
+                    <div class="offcanvas__close">
+                        <button (click)="closeOffcanvas()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text d-none d-xl-block">
+                    Nullam dignissim, ante scelerisque the is euismod fermentum odio sem semper the is erat, a
+                    feugiat leo urna eget eros. Duis Aenean a imperdiet risus.
+                </p>
+                <div class="mobile-menu fix mb-3 mean-container">
+                    <div class="mean-bar">
+                        <nav class="mean-nav">
+                            <ul>
+                                <li *ngFor="let item of menuItems">
+                                    <ng-container *ngIf="!item.subItems">
+                                        <a [routerLink]="item.link" (click)="closeOffcanvas()">{{ item.title }}</a>
+                                    </ng-container>
+
+                                    <ng-container *ngIf="item.subItems">
+                                        <a href="javascript:void(0)" (click)="toggleSubMenu(item)">
+                                            {{ item.title }}
+                                            <i class="fas fa-angle-down" [class.mean-clicked]="item.open"></i>
+                                        </a>
+                                        <ul [style.display]="item.open ? 'block' : 'none'">
+                                            <li *ngFor="let sub of item.subItems">
+                                                <a [routerLink]="sub.link" (click)="closeOffcanvas()">{{ sub.title
+                                                    }}</a>
+                                            </li>
+                                        </ul>
+                                        <a class="mean-expand" href="javascript:void(0)" (click)="toggleSubMenu(item)"
+                                            [class.mean-clicked]="item.open">
+                                            <i class="fas fa-plus" *ngIf="!item.open"></i>
+                                            <i class="fas fa-minus" *ngIf="item.open"></i>
+                                        </a>
+                                    </ng-container>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="offcanvas__contact">
+                    <h4>Contact Info</h4>
+                    <ul>
+                        <li class="d-flex align-items-center">
+                            <div class="offcanvas__contact-icon">
+                                <i class="fal fa-map-marker-alt"></i>
+                            </div>
+                            <div class="offcanvas__contact-text">
+                                <a target="_blank" href="#">Dhanmondi Road, Dhaka, Bangladesh</a>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <div class="offcanvas__contact-icon mr-15">
+                                <i class="fal fa-envelope"></i>
+                            </div>
+                            <div class="offcanvas__contact-text">
+                                <a href="mailto:info@example.com"><span
+                                        class="mailto:info@example.com">info&#64;example.com</span></a>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <div class="offcanvas__contact-icon mr-15">
+                                <i class="far fa-phone"></i>
+                            </div>
+                            <div class="offcanvas__contact-text">
+                                <a href="tel:+888123456765">+(+888) 123 456 765</a>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="social-icon d-flex align-items-center">
+                        <a href="https://www.facebook.com/your-profile" target="_blank"><i
+                                class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.twitter.com/your-profile" target="_blank"><i
+                                class="fab fa-twitter"></i></a>
+                        <a href="https://www.youtube.com/your-channel" target="_blank"><i
+                                class="fab fa-youtube"></i></a>
+                        <a href="https://www.linkedin.com/in/your-profile" target="_blank"><i
+                                class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="offcanvas__overlay"></div>

@@ -1,0 +1,755 @@
+﻿<!-- Search Area Start -->
+<div class="search-wrap">
+    <div class="search-inner">
+        <i class="fas fa-times search-close" id="search-close"></i>
+        <div class="search-cell">
+            <form method="get">
+                <div class="search-field-holder">
+                    <input type="search" class="main-search-input" placeholder="Search...">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hero Section Start-->
+<section class="hero-section  fix bg-cover fix-hero-padding-one">
+    <div class="hero-container-wrapper style1 ">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="hero-content">
+                        <h1 class="title "> INNOVATIVE <span class="highlight">DIGITAL</span>
+                            <span class="icon"><img src="assets/images/shape/shape1_2.svg" alt="icon"></span>SOLUTION
+                        </h1>
+                    </div>
+                    <div class="thumb1">
+                        <img src="assets/images/hero/heroThumb1_1.png" alt="thumb">
+                    </div>
+                    <div class="thumb2">
+                        <img src="assets/images/hero/heroThumb1_2.png" alt="thumb">
+                    </div>
+                    <div class="shape1"><img src="assets/images/shape/shape1_1.svg" alt="icon"></div>
+                    <div class="shape2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--Hero Section End-->
+
+<!-- About Us Section Start -->
+<section class="about-section section-padding fix">
+    <div class="container">
+        <div class="about-wrapper style1">
+            <div class="title-area mb-40">
+                <div class="sub-title text-center"><img src="assets/images/icon/parallelIcon.svg" alt="icon"></div>
+                <h2 class="single-section-title text-center text-white ">
+                    Illuminate Your Online Potential Elevate
+                    Digital Game</h2>
+            </div>
+            <div class="row g-5">
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="about-card mt-0">
+                        <div class="thumb">
+                            <img src="assets/images/about/aboutThumb1_1.png" alt="img">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-5 col-lg-4 col-md-6">
+                    <div class="about-card mt-0">
+                        <div class="content-area">
+                            <h4 class="">Designing the Future</h4>
+                            <p class="mt-10">Financial planners help people to
+                                gain knowledge aboutw toio invest and
+                                save their money
+                                in the most Fina planners help people to gain knowledge aboutw toio invest and save
+                                their money in the
+                                most Financial planners </p>
+                            <div class="help-content mt-30">
+                                <div class="icon"><i class="fa-regular fa-phone"></i></div>
+                                <div class="help-box">
+                                    <h5>Need help?</h5>
+                                    <h4 class="number">
+                                        <a href="tel:+18085550111">(808) 555-0111</a>
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-md-6">
+                    <div class="about-card mt-0">
+                        <div class="dot-rectangle">
+                            <img src="assets/images/icon/dotRectangle.svg" alt="squire">
+                        </div>
+                        <div class="stats-card">
+                            <div class="icon">
+                                <img src="assets/images/icon/roketFalcon.svg" alt="icon">
+                            </div>
+                            <h3 class="stat-number">3k+</h3>
+                            <p class="stat-title">Website Launched</p>
+                            <p class="stat-description">A digital agency is a company that helps businesses achieve
+                                their online</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+<!-- About Us Section End -->
+
+<!-- Marque Section start -->
+<app-marquee-style-two extraClass="fix"></app-marquee-style-two>
+<!-- Marque Section end -->
+
+<!-- Service Section Start -->
+<section class="service-section section-padding fix bg-gray">
+    <div class="container">
+        <div class="service-wrapper style3">
+            <div class="title-area mb-60">
+                <h2 class="single-section-title text-center text-white">Our Services</h2>
+                <div class="title-desc">Digital marketing involves promoting the a products or digital technolog
+                </div>
+            </div>
+            <div class="row g-5">
+                <div class="col-sm-6 col-md-6 col-lg-4" *ngFor="let service of services">
+                    <div class="service-card style1">
+                        <div class="service-thumb">
+                            <img [src]="service.img" alt="img">
+                        </div>
+                        <div [class]="service.contentClass">
+                            <div class="icon">
+                                <img [src]="service.icon" alt="icon">
+                            </div>
+                            <div class="content">
+                                <h4><a [routerLink]="service.link" [innerHTML]="service.title"></a></h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Service Section End -->
+
+<!-- video Section Start -->
+<div class="video-section  pb-0 fix bg-gray-half">
+    <div class="video-box-area" style="visibility: visible; animation-delay: 0.6s; animation-name: fadeInUp;">
+        <div class="video-wrap style1"
+            style="visibility: visible; animation-delay: 0.6s; animation-name: img-anim-left;">
+            <div class="container">
+                <div class="video-box fix background-image"
+                    style="background-image: url(&quot;assets/images/video/videoThumb1_1.png&quot;);">
+                    <a href="https://www.youtube.com/watch?v=f2Gzr8sAGB8" class="play-btn popup-video">
+                        <img src="assets/images/video/videoIcon.svg" alt="icon">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- video Section End -->
+
+<!-- Project Section Start -->
+<section class="project-section  section-padding pb-0 fix">
+    <div class="container">
+        <div class="project-wrapper style3">
+            <div class="title-area mb-60">
+                <div class="sub-title text-center"><img src="assets/images/icon/parallelIcon.svg" alt="icon"></div>
+                <h2 class="single-section-title text-center text-white">Noteworthy
+                    Feature</h2>
+            </div>
+            <div class="project-card style3">
+                <div class="content">
+                    <div class="strok-number">
+                        <span>01</span>
+                    </div>
+                    <div class="title-box">
+                        <h3 class="title">Empower Your Digital Presence</h3>
+                        <p class="subtitle">Digital marketing involves promoting the a products or digital technolog
+                            Digital of am marketing Digital marketing involves</p>
+                    </div>
+                </div>
+                <div class="btn-wrapper">
+                    <a href="#!" class="ct-btn style4">Read More<i class="fa-regular fa-arrow-right-long"></i></a>
+                </div>
+                <div class="project-hover-img d-none d-xxl-block">
+                    <img src="assets/images/project/projectThumb3_2.png" alt="Image">
+                </div>
+            </div>
+            <div class="project-card style3">
+                <div class="content">
+                    <div class="strok-number">
+                        <span>02</span>
+                    </div>
+                    <div class="title-box">
+                        <h3 class="title">Transform Your Online Strategy</h3>
+                        <p class="subtitle">Digital marketing involves promoting the a products or digital technolog
+                            Digital of am marketing Digital marketing involves</p>
+                    </div>
+                </div>
+                <div class="btn-wrapper">
+                    <a href="#!" class="ct-btn style4">Read More<i class="fa-regular fa-arrow-right-long"></i></a>
+                </div>
+                <div class="project-hover-img d-none d-xxl-block">
+                    <img src="assets/images/project/projectThumb3_2.png" alt="Image">
+                </div>
+            </div>
+            <div class="project-card style3">
+                <div class="content">
+                    <div class="strok-number">
+                        <span>03</span>
+                    </div>
+                    <div class="title-box">
+                        <h3 class="title">Shape Your Digital Future</h3>
+                        <p class="subtitle">Digital marketing involves promoting the a products or digital technolog
+                            Digital of am marketing Digital marketing involves</p>
+                    </div>
+                </div>
+                <div class="btn-wrapper">
+                    <a href="#!" class="ct-btn style4">Read More<i class="fa-regular fa-arrow-right-long"></i></a>
+                </div>
+                <div class="project-hover-img d-none d-xxl-block">
+                    <img src="assets/images/project/projectThumb3_2.png" alt="Image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Project Section End -->
+
+<!-- Project Gallery Start -->
+<section class="project-gallery-section section-padding pb-0 fix">
+    <div class="container">
+        <div class="project-gallery-wrapper style1">
+            <div class="title-area mb-55">
+                <h2 class="single-section-title text-center text-white">Latest Gallery</h2>
+                <div class="title-desc">Digital marketing involves promoting the a products or digital technolog
+                </div>
+            </div>
+            <div class="row gy-5">
+                <div class="col-lg-4 col-md-6 d-flex align-items-center justify-content-center">
+                    <div class="gallery-card style1">
+                        <div class="gallery-thumb">
+                            <img src="assets/images/project/projectGallery1_1.png" alt="thumb">
+                        </div>
+                        <div class="gallery-content">
+                            <h3 class="title"><a routerLink="/project-details">Your Digital Presence</a></h3>
+                            <p class="desc">SearchStream</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="gallery-card style1 mb-30">
+                        <div class="gallery-thumb">
+                            <img src="assets/images/project/projectGallery1_2.png" alt="thumb">
+                        </div>
+                        <div class="gallery-content">
+                            <h3 class="title"><a routerLink="/project-details">Your Digital Presence</a></h3>
+                            <p class="desc">SearchStream</p>
+                        </div>
+                    </div>
+                    <div class="gallery-card style1">
+                        <div class="gallery-thumb">
+                            <img src="assets/images/project/projectGallery1_3.png" alt="thumb">
+                        </div>
+                        <div class="gallery-content">
+                            <h3 class="title"><a routerLink="/project-details">Your Digital Presence</a></h3>
+                            <p class="desc">SearchStream</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 d-flex align-items-center justify-content-center">
+                    <div class="gallery-card style1">
+                        <div class="gallery-thumb">
+                            <img src="assets/images/project/projectGallery1_4.png" alt="thumb">
+                        </div>
+                        <div class="gallery-content">
+                            <h3 class="title"><a routerLink="/project-details">Your Digital Presence</a></h3>
+                            <p class="desc">SearchStream</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Project Gallery End -->
+
+<!-- Team Section Start -->
+<app-team-section extraClass="pb-0"></app-team-section>
+<!-- Team Section End -->
+
+<!-- Pricing Section Start -->
+<section class="pricing-section section-padding pb-0 fix">
+    <div class="pricing-wrapper style1">
+        <div class="container">
+            <div class="section-title title-area mx-auto mb-25">
+                <div class="tab-section">
+                    <div class="title-area">
+                        <h2 class="single-section-title">Pricing Plan</h2>
+                    </div>
+                    <div class="nav nav-pills" id="pills-tab" role="tablist">
+                        <div class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-monthly-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-monthly" type="button" role="tab" aria-controls="pills-monthly"
+                                aria-selected="true">
+                                Monthly
+                            </button>
+                            <button class="nav-link" id="pills-yearly-tab" data-bs-toggle="pill"
+                                data-bs-target="#pills-yearly" type="button" role="tab" aria-controls="pills-yearly"
+                                aria-selected="false" tabindex="-1">
+                                Yearly
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-hr"></div>
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade active show" id="pills-monthly" role="tabpanel"
+                    aria-labelledby="pills-monthly-tab">
+                    <div class="row gy-5">
+                        <div class="col-lg-6">
+                            <div class="pricing-card style1">
+                                <div class="pricing-card_header">
+                                    <div class="item">
+                                        <h4>Basic Plan</h4>
+                                        <div class="price">
+                                            <h2>$19</h2>
+                                            <span>/ mo</span>
+                                        </div>
+                                    </div>
+                                    <div class="item style1">
+                                        <img src="assets/images/icon/pricingIcon1_1.svg" alt="icon">
+                                    </div>
+                                </div>
+                                <div class="pricing-card_body">
+                                    <div class="checklist-wrapper">
+                                        <ul class="checklist style1">
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Mistakes To Avoid</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Your Startup</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Knew About Fonts</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Winning Metric for Your Startup</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <a class="ct-btn style4 w-100" href="#!">CHOSE A OPTION<i
+                                                class="fa-regular fa-arrow-right-long"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="pricing-card style1">
+                                <div class="pricing-card_header">
+                                    <div class="item">
+                                        <h4>Hard Plan</h4>
+                                        <div class="price">
+                                            <h2>$29</h2>
+                                            <span>/ mo</span>
+                                        </div>
+                                    </div>
+                                    <div class="item style1">
+                                        <img src="assets/images/icon/pricingIcon1_2.svg" alt="icon">
+                                    </div>
+                                </div>
+                                <div class="pricing-card_body">
+                                    <div class="checklist-wrapper">
+                                        <ul class="checklist style1">
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Mistakes To Avoid</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Your Startup</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Knew About Fonts</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Winning Metric for Your Startup</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <a class="ct-btn style4 w-100" href="#!">CHOSE A OPTION<i
+                                                class="fa-regular fa-arrow-right-long"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="pills-yearly" role="tabpanel" aria-labelledby="pills-yearly-tab">
+                    <div class="row gy-5">
+                        <div class="col-lg-6">
+                            <div class="pricing-card style1">
+                                <div class="pricing-card_header">
+                                    <div class="item">
+                                        <h4>Basic Plan</h4>
+                                        <div class="price">
+                                            <h2>$19</h2>
+                                            <span>/ mo</span>
+                                        </div>
+                                    </div>
+                                    <div class="item style1">
+                                        <img src="assets/images/icon/pricingIcon1_1.svg" alt="icon">
+                                    </div>
+                                </div>
+                                <div class="pricing-card_body">
+                                    <div class="checklist-wrapper">
+                                        <ul class="checklist style1">
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Mistakes To Avoid</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Your Startup</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Knew About Fonts</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Winning Metric for Your Startup</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <a class="ct-btn style4 w-100" href="#!">CHOSE A OPTION<i
+                                                class="fa-regular fa-arrow-right-long"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="pricing-card style1">
+                                <div class="pricing-card_header">
+                                    <div class="item">
+                                        <h4>Hard Plan</h4>
+                                        <div class="price">
+                                            <h2>$29</h2>
+                                            <span>/ mo</span>
+                                        </div>
+                                    </div>
+                                    <div class="item style1">
+                                        <img src="assets/images/icon/pricingIcon1_2.svg" alt="icon">
+                                    </div>
+                                </div>
+                                <div class="pricing-card_body">
+                                    <div class="checklist-wrapper">
+                                        <ul class="checklist style1">
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Mistakes To Avoid</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Your Startup</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Knew About Fonts</span>
+                                            </li>
+                                            <li><img src="assets/images/icon/rightShevronArrowWhite.svg" alt="icon">
+                                                <span>Winning Metric for Your Startup</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="btn-wrapper">
+                                        <a class="ct-btn style4 w-100" href="#!">CHOSE A OPTION<i
+                                                class="fa-regular fa-arrow-right-long"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section End -->
+
+<!-- Blog Section Start  -->
+<section class="blog-section section-padding pb-0 fix">
+    <div class="blog-wrapper style1">
+        <div class="container">
+            <div class="title-area mb-60">
+                <div class="sub-title text-center"><img src="assets/images/icon/parallelIcon.svg" alt="icon"></div>
+                <h2 class="single-section-title text-center text-white">Recent
+                    Updates
+                </h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="blog-card style1">
+                        <div class="blog-card-thumb">
+                            <img src="assets/images/blog/blogThumb1_8.png" alt="img">
+                        </div>
+                        <div class="blog-card-body">
+                            <ul>
+                                <li>
+                                    <i class="far fa-calendar-alt"></i>
+                                    October 19, 2023
+                                </li>
+                                <li>
+                                    <i class="fa-regular fa-user"></i>
+                                    By admin
+                                </li>
+                            </ul>
+                            <h3>
+                                <a routerLink="/blog-details">Pioneering Tomorrow's Technology Today
+                                    Your IT Partner for Progress</a>
+                            </h3>
+                            <p>Taxi service refers to the transportation of serv passengers from one
+                                location to another using a hired vehicle</p>
+                            <div class="btn-wrapper">
+                                <a routerLink="/blog-details" class="ct-btn style4">Read More<i
+                                        class="fa-regular fa-arrow-right-long"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="blog-card style2">
+                        <div class="blog-card-thumb">
+                            <img src="assets/images/blog/blogThumb1_9.png" alt="img">
+                        </div>
+                        <div class="blog-card-body">
+                            <ul>
+                                <li>
+                                    <i class="far fa-calendar-alt"></i>
+                                    October 19, 2023
+                                </li>
+                                <li>
+                                    <i class="fa-regular fa-user"></i>
+                                    By admin
+                                </li>
+                            </ul>
+                            <h3>
+                                <a routerLink="/blog-details">Streamlining Success in Bits and the more
+                                    Bytes</a>
+                            </h3>
+                            <p>There are many variations of the a passages of Lorem</p>
+                            <div class="btn-wrapper">
+                                <a routerLink="/blog-details" class="ct-btn style4">Read More<i
+                                        class="fa-regular fa-arrow-right-long"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="blog-card style2">
+                        <div class="blog-card-thumb">
+                            <img src="assets/images/blog/blogThumb1_10.png" alt="img">
+                        </div>
+                        <div class="blog-card-body">
+                            <ul>
+                                <li>
+                                    <i class="far fa-calendar-alt"></i>
+                                    October 19, 2023
+                                </li>
+                                <li>
+                                    <i class="fa-regular fa-user"></i>
+                                    By admin
+                                </li>
+                            </ul>
+                            <h3>
+                                <a routerLink="/blog-details">Connect Engage Thrive
+                                    Driven Excellence</a>
+                            </h3>
+                            <p>There are many variations of the a passages of Lorem</p>
+                            <div class="btn-wrapper">
+                                <a routerLink="/blog-details" class="ct-btn style4">Read More<i
+                                        class="fa-regular fa-arrow-right-long"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Blog Section End -->
+
+<!-- Testimonial Section Start -->
+<section class="testimonial-section section-padding pb-0 fix">
+    <div class="container">
+        <div class="testimonial-wrapper style3">
+            <div class="row d-flex align-items-center">
+                <!-- Testimonial Thumbnail -->
+                <div class="col-12 col-xl-9">
+                    <div class="testi-thumb d-none d-xl-block wow fadeInUp" data-wow-delay="0.6s">
+                        <img src="assets/images/testimonial/testiThumb1_1.png" alt="thumb">
+                    </div>
+                </div>
+
+                <!-- Testimonial Content -->
+                <div class="col-12 col-xl-3">
+                    <div class="slider-area">
+                        <div class="swiper ct-slider testimonial-slider2" id="testimonialSlider2"
+                            data-slider-options='{"loop": true, "effect": "fade", "breakpoints":{"0":{"slidesPerView":1}}}'>
+                            <div class="swiper-wrapper">
+                                <!-- Testimonial Card -->
+                                <div class="swiper-slide" *ngFor="let item of testimonials">
+                                    <div class="testimonial-card style3">
+                                        <div class="testimonial-header">
+                                            <div class="profile-wrapper">
+                                                <div class="quet-icon">
+                                                    <img src="assets/images/icon/testimonial1_2.svg" alt="svg">
+                                                </div>
+                                            </div>
+                                            <div class="star-wrapper">
+                                                <i class="fa-regular fa-star"></i>
+                                                <i class="fa-regular fa-star"></i>
+                                                <i class="fa-regular fa-star"></i>
+                                                <i class="fa-regular fa-star"></i>
+                                                <i class="fa-regular fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <div class="testimonial-content">
+                                            <p>
+                                                {{item.text}}
+                                            </p>
+                                        </div>
+                                        <div class="profile-box">
+                                            <div class="testi-thumb">
+                                                <img [src]="item.img" alt="thumb">
+                                            </div>
+                                            <div class="testi-content">
+                                                <h3 class="title">{{item.name}}</h3>
+                                                <div class="designation">{{item.role}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End of Testimonial Card -->
+                            </div>
+                        </div>
+                        <div class="arrow-box">
+                            <button data-slider-prev="#testimonialSlider2"
+                                class="slider-arrow style2 d-md-block d-none">
+                                <img src="assets/images/icon/leftArrow.svg" alt="icon">
+                            </button>
+                            <button data-slider-next="#testimonialSlider2"
+                                class="slider-arrow style2 slider-next d-md-block d-none">
+                                <img src="assets/images/icon/rightArrow.svg" alt="icon">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- End of Testimonial Content -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonial Section Start -->
+
+<!-- Contact Form Section Start -->
+<section class="contact-form-section section-padding fix">
+    <div class="container">
+        <div class="contact-wrapper style3">
+            <div class="row g-5">
+                <div class="col-lg-6 d-flex align-items-center">
+                    <div class="features-content">
+                        <div class="title-area">
+                            <div class="subtitle">
+                                <span>gET iN tOUCH</span>
+                            </div>
+                            <h2 class="single-section-title text-start mb-20">Your
+                                IT Partner for Meets Progress
+                            </h2>
+                        </div>
+                        <div class="author-meta">
+                            <div class="fancy-box style2">
+                                <div class="item"><i class="fa-regular fa-location-dot"></i></div>
+                                <div class="item">
+                                    <h6>Address</h6>
+                                    <p><a href="https://www.google.com/maps/place/66+Broklyant+India+3269+Road,+New+Eskaton,+NY+10007,+USA/@40.7127793,-74.0108437,17z/data=!3m2!4b1!5s0x8edd4d269678e1d9:0x3fbdf65719baddb9!4m6!3m5!1s0x89c25a220cfc254b:0x7e629730ad7807f7!8m2!3d40.7127753!4d-74.0059728!16s%2Fg%2F11w1hkwpy9?entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D"
+                                            target="_blank">66 Broklyant,India</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="author-meta">
+                            <div class="fancy-box style2">
+                                <div class="item"><i class="fa-regular fa-phone"></i></div>
+                                <div class="item">
+                                    <h6>Phone Number</h6>
+                                    <p><a href="tel:+44123456789101">012 345 678 9101</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="author-meta">
+                            <div class="fancy-box style2">
+                                <div class="item"><i class="fa-regular fa-envelope"></i></div>
+                                <div class="item">
+                                    <h6>Email</h6>
+                                    <p>
+                                        <a href="mailto:abcd@gmail.com">abcd@gmail.com</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="contact-form style3">
+                        <div class="section-title title-area pb-10">
+                            <div class="subtitle">
+                                <span>Get A qUOTE</span>
+                            </div>
+                            <h3 class="title">Unleashing Digital</h3>
+                        </div>
+                        <div class="input-field">
+                            <form action="#" id="contact-form" method="POST">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <div class="form-clt">
+                                            <input type="text" name="name" id="name" placeholder="First Name...">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-clt">
+                                            <input type="number" name="phone" id="phone" placeholder="Your Phone...">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="form-clt">
+                                            <select class="form-select" aria-label="Default select example">
+                                                <option selected="">Choose a Option</option>
+                                                <option value="1">One</option>
+                                                <option value="2">Two</option>
+                                                <option value="3">Three</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="form-clt">
+                                            <textarea name="message" id="message"
+                                                placeholder="Your E-mail..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <button type="submit" class="ct-btn style8">sENT nOW<i
+                                                class="fa-solid fa-arrow-right-long"></i></button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Contact Form Section End -->

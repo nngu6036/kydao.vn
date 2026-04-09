@@ -1,0 +1,28 @@
+﻿<app-breadcrumb [title]="pageTitle"></app-breadcrumb>
+
+<!-- Project Section Start -->
+<div class="project-section section-padding pb-0 fix">
+    <div class="container">
+        <div class="project-wrapper style1">
+            <div class="row g-5">
+                <div *ngFor="let project of projects" [class]="project.colClass">
+                    <div class="project-items style1">
+                        <div class="project-image">
+                            <img [src]="project.img" alt="img">
+                            <div class="project-content style2">
+                                <a [routerLink]="project.link" class="round-btn" aria-label="Go to project">
+                                    <i class="fa-regular fa-arrow-right-long"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Project Section End -->
+
+<!-- Faq Section Start -->
+<app-faq></app-faq>
+<!-- Faq Section End -->

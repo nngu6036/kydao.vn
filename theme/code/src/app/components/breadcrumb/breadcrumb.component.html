@@ -1,0 +1,20 @@
+<div class="breadcrumb-wrapper bg-cover pt-60" [style.background-image]="'url(' + backgroundImage + ')'">
+    <div class="container">
+        <div class="page-heading">
+            <h1>{{ title }}</h1>
+            <ul class="breadcrumb-items">
+                <li>
+                    <a routerLink="/">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <i class="fas fa-chevron-right"></i>
+                </li>
+                <li>
+                    {{ title }}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+<section class="team-section section-padding fix" [ngClass]="extraClass">
+    <div class="container">
+        <div class="title-area mb-60" *ngIf="showTitle">
+            <div class="sub-title pb-10 text-center"><img src="assets/images/icon/parallelIcon.svg" alt="icon"></div>
+            <h2 class="single-section-title text-center text-white">Our Best Team
+            </h2>
+        </div>
+        <div class="team-wrapper style1">
+            <div class="row g-4">
+                <div class="col-xl-4 col-lg-4 col-md-6" *ngFor="let member of members">
+                    <div class="team-card style1 mt-0">
+                        <div class="team-thumb opacity">
+                            <img [src]="member.img" alt="img">
+                        </div>
+                        <div class="team-content text-center">
+                            <div class="content-box">
+                                <h3>
+                                    <a routerLink="/team-details">{{member.name}}</a>
+                                </h3>
+                                <p>{{member.role}}</p>
+                            </div>
+                            <div class="social-profile">
+                                <a href="https://www.youtube.com" class="item" aria-label="YouTube">
+                                    <img src="assets/images/icon/youtube.svg" alt="YouTube icon">
+                                </a>
+                                <a href="https://www.linkedin.com" class="item" aria-label="LinkedIn">
+                                    <img src="assets/images/icon/linkedin.svg" alt="LinkedIn icon">
+                                </a>
+                                <a href="https://www.twitter.com" class="item" aria-label="Twitter">
+                                    <img src="assets/images/icon/new-twitter.svg" alt="Twitter icon">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,31 @@
+﻿<app-breadcrumb [title]="pageTitle"></app-breadcrumb>
+
+<!-- Service Section Start -->
+<section class="service-section section-padding pb-0 fix">
+    <div class="container">
+        <div class="service-wrapper style1">
+            <div class="row gy-4">
+                <div class="col-xl-4 col-md-6" *ngFor="let service of services">
+                    <div class="service-card style2">
+                        <div class="img-area">
+                            <div class="service-icon"><img [src]="service.icon" alt="icon"></div>
+                            <h3>{{ service.title }}</h3>
+                        </div>
+                        <div class="service-content">
+                            <p>{{ service.desc }}</p>
+                            <div class="btn-wrapper">
+                                <a routerLink="/service-details" class="ct-btn style4">Read More<i
+                                        class="fa-regular fa-arrow-right-long"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Service Section End -->
+
+<!-- Faq Section Start -->
+<app-faq></app-faq>
+<!-- Faq Section End -->

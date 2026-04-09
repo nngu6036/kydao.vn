@@ -1,0 +1,73 @@
+<header id="ct-header-sticky" class="ct-header-area ct-transparent-header header-bg">
+    <div class="container">
+        <div class="row align-items-center justify-content-between">
+            <div class="col-auto">
+                <div class="ct-header-logo">
+                    <a routerLink="/" class="header-logo">
+                        <img src="assets/images/logo/logoIcon.svg" alt="logo-img">
+                    </a>
+                </div>
+            </div>
+            <div class="col-auto d-none d-xl-block desktop-menu-wrapper">
+                <div class="ct-main-menu">
+                    <nav id="mobile-menu">
+                        <ul>
+                            <li>
+                                <a href="#">Home<i class="fas fa-angle-down"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a routerLink="/">Home 01</a></li>
+                                    <li><a routerLink="/home-2">Home 02</a></li>
+                                    <li><a routerLink="/home-3">Home 03</a></li>
+                                </ul>
+                            </li>
+                            <li><a routerLink="/about">About Us</a></li>
+                            <li>
+                                <a routerLink="/services">Services<i class="fas fa-angle-down"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a routerLink="/services">Services</a></li>
+                                    <li><a routerLink="/service-details">Service Details</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a routerLink="/projects">Projects<i class="fas fa-angle-down"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a routerLink="/projects">Projects</a></li>
+                                    <li><a routerLink="/project-details">Project Details</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a routerLink="/blog">Blog<i class="fas fa-angle-down"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a routerLink="/blog">Blog</a></li>
+                                    <li><a routerLink="/blog-details">Blog Details</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#">Pages<i class="fas fa-angle-down"></i></a>
+                                <ul class="sub-menu">
+                                    <li><a routerLink="/team">Team</a></li>
+                                    <li><a routerLink="/team-details">Team Details</a></li>
+                                </ul>
+                            </li>
+                            <li><a routerLink="/contact">Contact</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <div class="col-auto">
+                <div class="ct-header-button d-none d-xl-block my-auto">
+                    <a routerLink="/contact" class="ct-btn ">
+                        <span class="getQuote">
+                            get A Quote
+                            <i class="fa-solid fa-arrow-right-long"></i>
+                        </span>
+                    </a>
+                </div>
+                <div class="header__hamburger d-block d-xl-none my-auto">
+                    <div class="sidebar__toggle" (click)="toggleOffcanvas()">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,24 @@
+<div class="marque-section-3" [ngClass]="extraClass">
+    <div class="container-fluid gx-0">
+        <div class="marquee-wrapper style-2 text-slider">
+            <div class="marquee-inner to-left">
+                <ul class="marqee-list d-flex">
+                    <li class="marquee-item style-2">
+                        <ng-container *ngFor="let item of items">
+                            <span class="text-slider"><img src="assets/images/icon/starsThin.svg" alt="img"></span><span
+                                class="text-slider text-style">{{item}}</span>
+                        </ng-container>
+                        <!-- Duplicate specifically for effect if needed, but typically marquee JS handles cloning or CSS animation does. 
+                              The original code had two blocks. I will keep one large loop if list is long enough, 
+                              or duplicate the list in logic if needed. 
+                              Original home.html had two ngFor blocks. To match that logic: -->
+                        <ng-container *ngFor="let item of items">
+                            <span class="text-slider"><img src="assets/images/icon/starsThin.svg" alt="img"></span><span
+                                class="text-slider text-style">{{item}}</span>
+                        </ng-container>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

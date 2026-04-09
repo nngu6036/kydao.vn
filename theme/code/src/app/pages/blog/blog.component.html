@@ -1,0 +1,59 @@
+﻿<app-breadcrumb [title]="pageTitle"></app-breadcrumb>
+
+<!--Blog Section Start-->
+<section class="blog-section fix section-padding">
+    <div class="blog-wrapper style1">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="blog-card style5" *ngFor="let post of posts">
+                        <div class="blog-card-thumb pt-0">
+                            <img [src]="post.img" alt="img">
+                        </div>
+                        <div class="blog-card-body">
+                            <div class="post-date">
+                                <div class="calendar-icon">
+                                    <i class="far fa-calendar-alt"></i>
+                                </div>
+                                <button class="date-btn">{{ post.date }}</button>
+                            </div>
+                            <div class="blog-content">
+                                <ul class="">
+                                    <li>
+                                        <i class="fa-regular fa-user"></i>
+                                        By {{ post.user }}
+                                    </li>
+                                    <li>
+                                        <i class="fa-regular fa-folder-open"></i>
+                                        {{ post.category }}
+                                    </li>
+                                </ul>
+                                <h3 class="">
+                                    <a [routerLink]="post.link">{{ post.title }}</a>
+                                </h3>
+                                <a [routerLink]="post.link" class="ct-btn style7 mt-40">
+                                    Read More
+                                    <i class="fa-solid fa-arrow-right-long"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="page-nav-wrap pt-20 text-center ">
+                        <ul>
+                            <li><a class="page-numbers" href="#">01</a></li>
+                            <li><a class="page-numbers" href="#">02</a></li>
+                            <li><a class="page-numbers" href="#">03</a></li>
+                            <li><a class="page-numbers" href="#"><i class="fa-regular fa-chevrons-right"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <app-blog-sidebar></app-blog-sidebar>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--Blog Section End-->

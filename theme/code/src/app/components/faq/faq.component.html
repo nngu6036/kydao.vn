@@ -1,0 +1,37 @@
+<section class="faq-section-2 fix section-padding">
+    <div class="container">
+        <div class="faq-wrapper">
+            <div class="row g-5">
+                <div class="col-12">
+                    <div class="title-area mb-10 text-center">
+                        <h2 class="single-section-title">Some Faq Question</h2>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-md-12 mb-40">
+                    <div class="accordion" id="accordionExample">
+                        <div class="ct-accordion-item mb-20" *ngFor="let item of faqs; let i = index">
+                            <h2 class="ct-accordion-header">
+                                <button class="ct-accordion-button" [class.collapsed]="!item.isOpen" type="button"
+                                    (click)="toggle(i)">
+                                    <strong>{{ item.question }}</strong>
+                                    <span class="plus"><i class="fa-solid fa-plus"></i></span>
+                                    <span class="minus"><i class="fa-solid fa-minus"></i></span>
+                                </button>
+                            </h2>
+                            <div [class.show]="item.isOpen" class="ct-accordion-collapse collapse">
+                                <div class="ct-accordion-body">
+                                    <p>{{ item.answer }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="faq-image">
+                        <img src="assets/images/faqThumb.png" alt="img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
