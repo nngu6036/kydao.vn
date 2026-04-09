@@ -9,8 +9,10 @@ services:
     build:
       context: ../apps/api
     container_name: chess-elo-api
-    env_file:
-      - ../.env
+    environment:
+      CHESS_ELO_MONGODB_URI: mongodb://mongo:27017
+      CHESS_ELO_MONGODB_DATABASE: chess_elo
+      CHESS_ELO_MONGODB_APP_NAME: chess-elo-api
     ports:
       - "8000:8000"
     depends_on:
