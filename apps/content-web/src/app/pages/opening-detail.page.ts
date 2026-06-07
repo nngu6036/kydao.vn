@@ -7,15 +7,14 @@ import { HeaderComponent } from '../components/header.component';
 import { MockContentService } from '../core/mock-content.service';
 
 @Component({
-  standalone: true,
-  imports: [AsyncPipe, DecimalPipe, NgFor, NgIf, RouterLink, HeaderComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
+        <h1 class="search-title">Dữ liệu khai cuộc</h1>
         <div class="search-container" *ngIf="opening$ | async as opening">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back">← Quay lại</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
               <div class="content-block detail-page-block">

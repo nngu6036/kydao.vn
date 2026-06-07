@@ -3,6 +3,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@chess-elo/shared-ui": [
+        "../../packages/shared-ui/src/public-api.ts"
+      ],
+      "@chess-elo/shared-ui/xiangqi-board": [
+        "../../packages/shared-ui/src/lib/xiangqi-board/xiangqi-board.standalone.component.ts"
+      ],
       "@chess-elo/shared-types": [
         "../../packages/shared-types/src/index.ts"
       ]

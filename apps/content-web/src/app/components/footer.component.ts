@@ -3,8 +3,6 @@ import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-footer',
-  standalone: true,
-  imports: [NgFor],
   template: `
     <footer class="footer">
       <div class="footer-container">

@@ -27,10 +27,23 @@ This is a scaffold intended to show the monorepo structure and how shared librar
 The `shared-ui` and `shared-types` packages are included as reusable libraries for both apps.
 
 ## Backend
+
+Start the API and MongoDB with Docker Compose:
+
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose -f deploy/docker-compose.yml up --build api
 ```
+
+Or start the API locally with Uvicorn:
+
+```bash
+cd apps/api
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The API runs at `http://localhost:8000`. Check it with `http://localhost:8000/health`.
 
 ## Frontends
 ```bash

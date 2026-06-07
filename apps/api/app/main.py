@@ -7,6 +7,7 @@ from app.db import connect_to_mongo, disconnect_from_mongo
 from app.routes.public import router as public_router
 from app.routes.auth import router as auth_router
 from app.routes.admin import router as admin_router
+from app.routes.content import router as content_router
 
 settings = get_settings()
 
@@ -35,4 +36,5 @@ async def health():
 
 app.include_router(auth_router)
 app.include_router(admin_router)
+app.include_router(content_router)
 app.include_router(public_router)

@@ -6,15 +6,14 @@ import { HeaderComponent } from '../components/header.component';
 import { MockContentService } from '../core/mock-content.service';
 
 @Component({
-  standalone: true,
-  imports: [NgFor, NgIf, AsyncPipe, RouterLink, HeaderComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
+        <h1 class="search-title">Dữ liệu giải đấu</h1>
         <div class="search-container" *ngIf="tournament$ | async as tournament">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back">← Quay lại</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
               <div class="content-block detail-page-block">

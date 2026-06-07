@@ -1,1 +1,7 @@
-export const environment = { apiBaseUrl: 'http://localhost:8000' };
+import environmentSettings from '../../environments/environment.json';
+
+export interface AdminEnvironment {
+  apiBaseUrl: string;
+}
+
+export const environment: AdminEnvironment = environmentSettings;

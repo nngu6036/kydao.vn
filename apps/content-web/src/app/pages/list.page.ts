@@ -7,15 +7,13 @@ import { HeaderComponent } from '../components/header.component';
 import { MockContentService } from '../core/mock-content.service';
 
 @Component({
-  standalone: true,
-  imports: [NgFor, NgIf, DecimalPipe, NgClass, AsyncPipe, RouterLink, HeaderComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
         <div class="search-container">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back">← Quay lai</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
             <div class="page-main">
               <h1 class="search-title">{{ title }}</h1>
               <div class="content-block list-page-block">
@@ -69,7 +67,7 @@ import { MockContentService } from '../core/mock-content.service';
                       <div class="tournament-meta">
                         <span class="meta-item tournament-meta-date">📅 {{ tournament.date }}</span>
                         <span class="meta-item tournament-meta-location">📍 {{ tournament.location }}</span>
-                        <span class="meta-item tournament-meta-participants">{{ tournament.participants }} ky thu</span>
+                      <span class="meta-item tournament-meta-participants">{{ tournament.participants }} kỳ thủ</span>
                       </div>
                     </div>
                     <span
@@ -87,7 +85,7 @@ import { MockContentService } from '../core/mock-content.service';
                   <article class="opening-card" *ngFor="let opening of openings$ | async" [routerLink]="['/openings', opening.id]">
                     <div class="opening-info">
                       <div class="opening-name">{{ opening.name }}</div>
-                      <div class="opening-stats">{{ opening.games | number }} van co</div>
+                      <div class="opening-stats">{{ opening.games | number }} ván cờ</div>
                     </div>
                     <div class="opening-winrate">
                       <div class="winrate-bars">
@@ -96,9 +94,9 @@ import { MockContentService } from '../core/mock-content.service';
                         <div class="winrate-bar black" [style.width.%]="opening.winRate.black"></div>
                       </div>
                       <div class="winrate-labels">
-                        <span class="label red">Do {{ opening.winRate.red }}%</span>
-                        <span class="label draw">Hoa {{ opening.winRate.draw }}%</span>
-                        <span class="label black">Den {{ opening.winRate.black }}%</span>
+                        <span class="label red">Đỏ {{ opening.winRate.red }}%</span>
+                        <span class="label draw">Hòa {{ opening.winRate.draw }}%</span>
+                        <span class="label black">Đen {{ opening.winRate.black }}%</span>
                       </div>
                     </div>
                   </article>
@@ -114,7 +112,7 @@ import { MockContentService } from '../core/mock-content.service';
                     </div>
                     <div class="rank-player">
                       <a class="rank-name player-link" [routerLink]="['/players', player.player_id]">{{ player.player_name }}</a>
-                      <div class="rank-games">{{ player.games }} van</div>
+                      <div class="rank-games">{{ player.games }} ván</div>
                       <div class="rank-rating">{{ player.rating }}</div>
                     </div>
                   </article>
@@ -134,7 +132,7 @@ export class ListPage {
   private readonly mockContent = inject(MockContentService);
 
   readonly kind = this.route.snapshot.data['kind'] as 'tournaments' | 'players' | 'games' | 'openings' | 'rankings';
-  readonly title = this.route.snapshot.data['title'] || 'Danh sach';
+  readonly title = this.route.snapshot.data['title'] || 'Danh sách';
 
   readonly tournaments$ = this.mockContent.tournaments$.pipe(
     map(items => [...items].sort((a, b) => this.parseDisplayDate(b.date) - this.parseDisplayDate(a.date)))

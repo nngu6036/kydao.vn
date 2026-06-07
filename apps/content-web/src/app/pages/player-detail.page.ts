@@ -7,15 +7,14 @@ import { FooterComponent } from '../components/footer.component';
 import { MockContentService } from '../core/mock-content.service';
 
 @Component({
-  standalone: true,
-  imports: [AsyncPipe, NgFor, NgIf, RouterLink, HeaderComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
+        <h1 class="search-title">Dữ liệu kỳ thủ</h1>
         <div class="search-container" *ngIf="player$ | async as player">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back">← Quay lại</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
               <div class="content-block detail-page-block">
@@ -27,7 +26,7 @@ import { MockContentService } from '../core/mock-content.service';
                   </div>
                 </div>
                 <div class="detail-page-grid">
-                  <div><strong>He so ELO:</strong> {{ player.rating }}</div>
+                  <div><strong>Hệ số ELO:</strong> {{ player.rating }}</div>
                 </div>
 
 

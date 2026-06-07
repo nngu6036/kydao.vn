@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AsyncPipe, Location, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -8,19 +8,18 @@ import {
   XiangqiBoardComponent,
   XiangqBoardUtils,
   type XiangqiMove,
-} from '../components/xiangqi-board.standalone.component';
+} from '@chess-elo/shared-ui/xiangqi-board';
 import { MockContentService } from '../core/mock-content.service';
 
 @Component({
-  standalone: true,
-  imports: [AsyncPipe, NgFor, NgIf, RouterLink, HeaderComponent, FooterComponent, XiangqiBoardComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
+        <h1 class="search-title">Dữ liệu ván đấu</h1>
         <div class="search-container" *ngIf="game$ | async as game">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back"><- Quay lai</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
               <div class="content-block detail-page-block">
@@ -58,14 +57,15 @@ import { MockContentService } from '../core/mock-content.service';
                     class="game-board"
                     position="start"
                     [moves]="game.boardMoves"
-                    [viewOnly]="true"
+                    [viewOnly]="false"
+                    (pieceMove)="onPieceMove($event)"
                   ></xiangqi-board>
 
                   <div class="move-list-panel" *ngIf="game.moveTokens.length">
                     <select
                       class="move-list-box"
                       [value]="selectedMoveIndex"
-                      (change)="selectMove($any($event.target).value)"
+                      (change)="selectMove($any($event.target).value, xiangqiBoard)"
                       size="16"
                     >
                       <option *ngFor="let move of game.moveTokens; let idx = index" [value]="idx">
@@ -84,8 +84,6 @@ import { MockContentService } from '../core/mock-content.service';
   `,
 })
 export class GameDetailPage {
-  @ViewChild('xiangqiBoard') private xiangqiBoard?: XiangqiBoardComponent;
-
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly mockContent = inject(MockContentService);
@@ -112,13 +110,17 @@ export class GameDetailPage {
     this.location.back();
   }
 
-  selectMove(index: number): void {
+  selectMove(index: number, board: XiangqiBoardComponent): void {
     const moveIndex = Number(index);
     if (Number.isNaN(moveIndex) || moveIndex < 0) {
       return;
     }
     this.selectedMoveIndex = moveIndex;
-    this.xiangqiBoard?.boardCtrl.setMoveCursor(moveIndex);
+    board.setMoveCursor(moveIndex);
+  }
+
+  onPieceMove(move: unknown): void {
+    console.log('Piece move event:', move);
   }
 
   moveOptionLabel(index: number, move: string): string {

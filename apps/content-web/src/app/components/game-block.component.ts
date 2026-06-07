@@ -6,8 +6,6 @@ import { MockContentService } from '../core/mock-content.service';
 
 @Component({
   selector: 'app-game-block',
-  standalone: true,
-  imports: [NgFor, NgIf, AsyncPipe, RouterLink],
   template: `
     <section class="content-block game-block">
       <div class="block-header">

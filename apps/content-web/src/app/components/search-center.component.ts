@@ -6,8 +6,6 @@ import { MockContentService } from '../core/mock-content.service';
 
 @Component({
   selector: 'app-search-center',
-  standalone: true,
-  imports: [FormsModule, NgFor, AsyncPipe],
   template: `
     <section class="search-center">
       <div class="search-container">
@@ -16,7 +14,7 @@ import { MockContentService } from '../core/mock-content.service';
           <input
             type="text"
             [(ngModel)]="query"
-            placeholder="Tim kiem ky thu, giai dau, van co, khai cuoc..."
+            placeholder="Tìm kiếm kỳ thủ, giải đấu, ván cờ, khai cuộc..."
             class="search-input"
             (keydown.enter)="submit()"
           />
@@ -25,7 +23,7 @@ import { MockContentService } from '../core/mock-content.service';
             type="button"
             (click)="submit()"
             [disabled]="!canSubmit"
-            aria-label="Tim kiem"
+            aria-label="Tìm kiếm"
           >
             <span class="search-btn-icon" aria-hidden="true">&#8981;</span>
           </button>

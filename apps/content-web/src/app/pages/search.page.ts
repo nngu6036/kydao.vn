@@ -9,21 +9,19 @@ import { MockContentService } from '../core/mock-content.service';
 import type { GameItem } from '../models/content.models';
 
 @Component({
-  standalone: true,
-  imports: [AsyncPipe, NgFor, NgIf, RouterLink, HeaderComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>
       <section class="search-center search-center--compact">
         <div class="search-container">
           <div class="page-with-back">
-            <button class="back-link" type="button" (click)="goBack()" aria-label="Go back">← Quay lai</button>
+            <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
               <h1 class="search-title">Kết quả tìm kiếm</h1>
 
               <div class="search-result-query" *ngIf="searchState$ | async as state">
-                <p *ngIf="state.query">Tu khoa: <strong>{{ state.query }}</strong></p>
+                <p *ngIf="state.query">Từ khóa: <strong>{{ state.query }}</strong></p>
               </div>
 
               <div class="content-block list-page-block">

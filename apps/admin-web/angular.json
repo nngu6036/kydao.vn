@@ -14,22 +14,55 @@
             "outputPath": "dist/app",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [],
+            "optimization": {
+              "fonts": {
+                "inline": false
+              }
+            },
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "../../packages/shared-ui/src/assets/chess",
+                "output": "/assets/theme/images/chess"
+              }
             ],
             "styles": [
               "src/styles.css"
             ],
             "scripts": []
-          }
+          },
+          "configurations": {
+            "development": {},
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.json",
+                  "with": "src/environments/environment.prod.json"
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "app:build"
-          }
+            "buildTarget": "app:build:development"
+          },
+          "configurations": {
+            "development": {
+              "buildTarget": "app:build:development"
+            },
+            "production": {
+              "buildTarget": "app:build:production"
+            }
+          },
+          "defaultConfiguration": "development"
         }
       }
     }

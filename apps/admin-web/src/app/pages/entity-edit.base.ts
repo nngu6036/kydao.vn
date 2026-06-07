@@ -1,0 +1,329 @@
+import { FormControl, FormGroup } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, catchError, combineLatest, map, of, switchMap, tap } from 'rxjs';
+import {
+  AdminContentService,
+  ENTITY_CONFIGS,
+  EntityConfig,
+  EntityField,
+  EntityKind,
+  EntitySearchOption,
+} from '../core/admin-content.service';
+
+export const ENTITY_EDIT_TEMPLATE = `
+  <section class="page-head" *ngIf="vm$ | async as vm">
+    <div>
+      <p class="eyebrow">{{ vm.isNew ? 'Tạo mới' : 'Chỉnh sửa' }}</p>
+      <h1>{{ vm.config.singular }}</h1>
+    </div>
+    <a class="secondary-action" [routerLink]="['/', vm.config.kind]">Quay lại danh sách</a>
+  </section>
+
+  <section class="work-panel" *ngIf="activeConfig">
+    <form class="edit-form" [formGroup]="form" (ngSubmit)="save()">
+      <label *ngFor="let field of activeConfig.fields" [class.checkbox-field]="field.type === 'checkbox'">
+        <span>{{ field.label }}</span>
+
+        <textarea
+          *ngIf="field.type === 'textarea'; else standardInput"
+          [formControlName]="field.key"
+          rows="7"
+        ></textarea>
+
+        <ng-template #standardInput>
+          <div class="entity-search" *ngIf="field.type === 'entity-search'; else selectInput">
+            <input
+              type="search"
+              [formControl]="searchControls[field.key]"
+              placeholder="Nhập tên để tìm kiếm"
+              autocomplete="off"
+              (focus)="openEntitySearch(field)"
+              (input)="onEntitySearchInput(field, $any($event.target).value)"
+              (blur)="cancelEntitySearch(field)"
+              (keydown.escape)="cancelEntitySearch(field)"
+            />
+            <div class="entity-search-menu" *ngIf="isEntitySearchOpen(field)">
+              <button
+                type="button"
+                class="entity-search-option"
+                *ngFor="let option of searchOptions[field.key] ?? []"
+                (pointerdown)="selectEntityOption(field, option); $event.preventDefault()"
+              >
+                <strong>{{ option.name || option.id }}</strong>
+                <span>{{ option.id }}</span>
+              </button>
+              <div class="entity-search-empty" *ngIf="!(searchOptions[field.key] ?? []).length">
+                Không tìm thấy kết quả
+              </div>
+            </div>
+          </div>
+
+          <ng-template #selectInput>
+            <select
+              *ngIf="field.type === 'select'; else textInput"
+              [formControlName]="field.key"
+            >
+              <option value="">Chưa chọn</option>
+              <option *ngFor="let option of field.options ?? []" [value]="option.value">{{ option.label }}</option>
+            </select>
+
+            <ng-template #textInput>
+              <input
+                *ngIf="field.type !== 'checkbox'"
+                [type]="inputType(field)"
+                [formControlName]="field.key"
+              />
+            </ng-template>
+
+            <input *ngIf="field.type === 'checkbox'" type="checkbox" [formControlName]="field.key" />
+          </ng-template>
+        </ng-template>
+      </label>
+
+      <div class="form-actions">
+        <button class="primary-action" type="submit" [disabled]="saving">
+          {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
+        </button>
+        <span class="save-state" *ngIf="message">{{ message }}</span>
+      </div>
+    </form>
+  </section>
+`;
+
+export abstract class EntityEditBasePage {
+  form = new FormGroup<Record<string, FormControl>>({});
+  activeConfig?: EntityConfig;
+  activeId?: string;
+  saving = false;
+  message = '';
+  searchControls: Record<string, FormControl<string>> = {};
+  searchOptions: Record<string, EntitySearchOption[]> = {};
+  private committedSearchValues: Record<string, { id: string; name: string }> = {};
+  private openSearchKey?: string;
+
+  readonly config: EntityConfig;
+  readonly vm$: Observable<{ config: EntityConfig; id: string | undefined; isNew: boolean }>;
+
+  protected constructor(
+    protected readonly route: ActivatedRoute,
+    protected readonly router: Router,
+    protected readonly api: AdminContentService,
+    kind: EntityKind,
+  ) {
+    this.config = ENTITY_CONFIGS[kind];
+    this.vm$ = combineLatest([this.route.paramMap]).pipe(
+      map(([params]) => {
+        const id = params.get('id') ?? undefined;
+        return { config: this.config, id, isNew: !id };
+      }),
+      switchMap((state) => {
+        this.buildForm(state.config);
+        this.activeConfig = state.config;
+        this.activeId = state.id;
+
+        if (!state.id) {
+          return of(state);
+        }
+
+        return this.api.get(state.config.kind, state.id).pipe(
+          tap((item) => {
+            this.form.patchValue(this.toFormValue(item));
+            this.setSearchLabels(item);
+            this.afterFormDataLoaded();
+          }),
+          map(() => state),
+          catchError(() => {
+            this.message = 'Không thể tải bản ghi này.';
+            return of(state);
+          })
+        );
+      })
+    );
+  }
+
+  save(): void {
+    if (!this.activeConfig) {
+      return;
+    }
+
+    this.saving = true;
+    this.message = '';
+    const payload = this.toPayload(this.form.getRawValue());
+    const kind = this.activeConfig.kind;
+    const request = this.activeId
+      ? this.api.update(kind, this.activeId, payload)
+      : this.api.create(kind, payload);
+
+    request.subscribe({
+      next: () => {
+        this.saving = false;
+        this.message = 'Đã lưu';
+        this.router.navigate(['/', kind]);
+      },
+      error: () => {
+        this.saving = false;
+        this.message = 'Lưu thất bại. Hãy kiểm tra kết nối API.';
+      },
+    });
+  }
+
+  openEntitySearch(field: EntityField): void {
+    this.openSearchKey = field.key;
+    this.searchEntityOptions(field, this.searchControls[field.key]?.value ?? '');
+  }
+
+  isEntitySearchOpen(field: EntityField): boolean {
+    return this.openSearchKey === field.key;
+  }
+
+  searchEntityOptions(field: EntityField, value: string): void {
+    if (field.type !== 'entity-search' || !field.searchKind) {
+      return;
+    }
+
+    const query = value.trim();
+    if (!query) {
+      this.searchOptions[field.key] = [];
+      return;
+    }
+
+    this.api.searchByName(field.searchKind, query).subscribe({
+      next: (options) => {
+        this.searchOptions[field.key] = options;
+      },
+      error: () => {
+        this.searchOptions[field.key] = [];
+      },
+    });
+  }
+
+  onEntitySearchInput(field: EntityField, value: string): void {
+    this.form.controls[field.key]?.setValue('');
+    this.setRelatedName(field.key, '');
+    this.searchEntityOptions(field, value);
+  }
+
+  cancelEntitySearch(field: EntityField): void {
+    setTimeout(() => {
+      if (this.openSearchKey !== field.key) {
+        return;
+      }
+
+      this.restoreCommittedSearchValue(field);
+      this.searchOptions[field.key] = [];
+      this.openSearchKey = undefined;
+    }, 100);
+  }
+
+  selectEntityOption(field: EntityField, option: EntitySearchOption): void {
+    const name = this.optionName(option);
+    this.commitSearchValue(field, option.id, name);
+    this.searchOptions[field.key] = [];
+    this.openSearchKey = undefined;
+  }
+
+  inputType(field: EntityField): string {
+    if (field.type === 'number' || field.type === 'date') {
+      return field.type;
+    }
+    return 'text';
+  }
+
+  protected afterFormBuilt(): void {
+    // Subclasses can attach streams to the freshly-created form controls.
+  }
+
+  protected afterFormDataLoaded(): void {
+    // Subclasses can react after existing entity data has been patched into the form.
+  }
+
+  private buildForm(config: EntityConfig): void {
+    const controls: Record<string, FormControl> = {};
+    this.searchControls = {};
+    this.searchOptions = {};
+    this.committedSearchValues = {};
+
+    for (const field of config.fields) {
+      controls[field.key] = new FormControl(field.type === 'checkbox' ? false : '');
+      if (field.type === 'entity-search') {
+        this.searchControls[field.key] = new FormControl('', { nonNullable: true });
+      }
+    }
+    this.form = new FormGroup(controls);
+    this.afterFormBuilt();
+  }
+
+  private setSearchLabels(item: Record<string, unknown>): void {
+    for (const field of this.activeConfig?.fields ?? []) {
+      if (field.type !== 'entity-search') {
+        continue;
+      }
+
+      const labelKey = this.searchLabelKey(field.key);
+      const id = item[field.key];
+      const label = item[labelKey] ?? id;
+      this.commitSearchValue(field, id ? String(id) : '', label ? String(label) : '');
+    }
+  }
+
+  private searchLabelKey(key: string): string {
+    if (key === 'red_id') {
+      return 'red_name';
+    }
+    if (key === 'black_id') {
+      return 'black_name';
+    }
+    if (key === 'tournament_id') {
+      return 'tournament_name';
+    }
+    return key;
+  }
+
+  private setRelatedName(key: string, name: string): void {
+    const nameKey = this.searchLabelKey(key);
+    if (nameKey !== key) {
+      this.form.controls[nameKey]?.setValue(name);
+      this.form.controls[nameKey]?.markAsDirty();
+      this.form.controls[nameKey]?.updateValueAndValidity();
+    }
+  }
+
+  private commitSearchValue(field: EntityField, id: string, name: string): void {
+    this.committedSearchValues[field.key] = { id, name };
+    this.form.controls[field.key]?.setValue(id);
+    this.form.controls[field.key]?.markAsDirty();
+    this.form.controls[field.key]?.updateValueAndValidity();
+    this.searchControls[field.key]?.setValue(name);
+    this.setRelatedName(field.key, name);
+  }
+
+  private optionName(option: EntitySearchOption): string {
+    const name = option.name;
+    return typeof name === 'string' && name.trim() ? name : option.id;
+  }
+
+  private restoreCommittedSearchValue(field: EntityField): void {
+    const value = this.committedSearchValues[field.key] ?? { id: '', name: '' };
+    this.form.controls[field.key]?.setValue(value.id);
+    this.searchControls[field.key]?.setValue(value.name);
+    this.setRelatedName(field.key, value.name);
+  }
+
+  private toFormValue(item: Record<string, unknown>): Record<string, unknown> {
+    const value: Record<string, unknown> = {};
+    for (const key of Object.keys(this.form.controls)) {
+      value[key] = item[key] ?? (typeof item[key] === 'boolean' ? false : '');
+    }
+    return value;
+  }
+
+  private toPayload(value: Record<string, unknown>): Record<string, unknown> {
+    const payload: Record<string, unknown> = {};
+    for (const field of this.activeConfig?.fields ?? []) {
+      const raw = value[field.key];
+      const key = field.payloadKey ?? field.key;
+      payload[key] = raw === '' ? null : raw;
+    }
+    return payload;
+  }
+}

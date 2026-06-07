@@ -4,8 +4,6 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
-  standalone: true,
-  imports: [RouterLink, NgFor],
   template: `
     <header class="site-header">
       <div class="header-with-banner" aria-hidden="true"></div>

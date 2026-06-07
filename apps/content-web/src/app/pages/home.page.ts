@@ -9,8 +9,6 @@ import { RankingBlockComponent } from '../components/ranking-block.component';
 import { FooterComponent } from '../components/footer.component';
 
 @Component({
-  standalone: true,
-  imports: [HeaderComponent, SearchCenterComponent, TournamentBlockComponent, PlayerBlockComponent, GameBlockComponent, OpeningBlockComponent, RankingBlockComponent, FooterComponent],
   template: `
     <div class="homepage">
       <app-header></app-header>

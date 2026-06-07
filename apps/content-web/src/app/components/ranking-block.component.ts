@@ -6,8 +6,6 @@ import { MockContentService } from '../core/mock-content.service';
 
 @Component({
   selector: 'app-ranking-block',
-  standalone: true,
-  imports: [NgFor, NgClass, AsyncPipe, RouterLink],
   template: `
     <section class="content-block ranking-block">
       <div class="block-header">

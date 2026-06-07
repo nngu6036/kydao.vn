@@ -15,12 +15,22 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "sourceMap": true,
+            "optimization": {
+              "fonts": {
+                "inline": false
+              }
+            },
             "polyfills": [
               "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "../../packages/shared-ui/src/assets/chess",
+                "output": "/assets/theme/images/chess"
+              }
             ],
             "styles": [
               "src/assets/theme/css/bootstrap.min.css",

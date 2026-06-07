@@ -6,8 +6,6 @@ import { MockContentService } from '../core/mock-content.service';
 
 @Component({
   selector: 'app-opening-block',
-  standalone: true,
-  imports: [NgFor, DecimalPipe, AsyncPipe, RouterLink],
   template: `
     <section class="content-block opening-block">
       <div class="block-header">
