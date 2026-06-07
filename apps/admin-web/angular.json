@@ -28,7 +28,7 @@
               {
                 "glob": "**/*",
                 "input": "../../packages/shared-ui/src/assets/chess",
-                "output": "/assets/theme/images/chess"
+                "output": "assets/theme/images/chess"
               }
             ],
             "styles": [
@@ -37,32 +37,40 @@
             "scripts": []
           },
           "configurations": {
-            "development": {},
-            "production": {
+            "dev": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/environment.json",
-                  "with": "src/environments/environment.prod.json"
+                  "replace": "src/environments/.env.json",
+                  "with": "src/environments/.env.dev.json"
+                }
+              ]
+            },
+            "prod": {
+              "baseHref": "/quantri/",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/.env.json",
+                  "with": "src/environments/.env.prod.json"
                 }
               ]
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "app:build:development"
+            "buildTarget": "app:build:dev"
           },
           "configurations": {
-            "development": {
-              "buildTarget": "app:build:development"
+            "dev": {
+              "buildTarget": "app:build:dev"
             },
-            "production": {
-              "buildTarget": "app:build:production"
+            "prod": {
+              "buildTarget": "app:build:prod"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         }
       }
     }

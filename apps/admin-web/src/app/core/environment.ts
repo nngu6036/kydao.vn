@@ -1,4 +1,4 @@
-import environmentSettings from '../../environments/environment.json';
+import environmentSettings from '../../environments/.env.json';
 
 export interface AdminEnvironment {
   apiBaseUrl: string;

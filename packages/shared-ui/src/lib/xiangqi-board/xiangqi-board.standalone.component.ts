@@ -984,7 +984,7 @@ export class XiangqiBoardGuiUtils {
   template: `
     <img
       *ngIf="piece as renderedPiece"
-      [src]="'/assets/theme/images/chess/pieces/' + renderedPiece.Code + '.svg'"
+      [src]="'assets/theme/images/chess/pieces/' + renderedPiece.Code + '.svg'"
       [hidden]="hidden"
       [width]="width"
       [height]="height"
@@ -1093,7 +1093,7 @@ export class XiangqiPieceComponent implements DoCheck {
     <div class="xiangqiboard">
       <div class="board" #boardContainer>
         <img
-          src="/assets/theme/images/chess/board.png"
+          src="assets/theme/images/chess/board.png"
           (mousedown)="clickBoard($event)"
           (load)="boardReady()"
           #boardDOM
