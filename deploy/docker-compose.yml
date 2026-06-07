@@ -4,6 +4,8 @@ services:
     container_name: chess-elo-mongo
     ports:
       - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
   api:
     image: chess-elo-api
@@ -19,22 +21,5 @@ services:
     depends_on:
       - mongo
 
-  content-web:
-    image: chess-elo-content-web
-    build:
-      context: ../apps/content-web
-    container_name: chess-elo-content-web
-    expose:
-      - "4200"
-    depends_on:
-      - api
-
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: chess-elo-nginx
-    ports:
-      - "80:80"
-    volumes:
-      - ../nginx/content-web.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - content-web
+volumes:
+  mongo-data:
