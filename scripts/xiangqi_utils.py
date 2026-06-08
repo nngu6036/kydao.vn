@@ -107,47 +107,6 @@ class XiangqiPiece:
     def col(self) -> int:
         return int(self.pos[0])
 
-    # TypeScript-compatible aliases.
-    @property
-    def Code(self) -> str:
-        return self.code
-
-    @property
-    def Id(self) -> str:
-        return self.id
-
-    @property
-    def Pos(self) -> str:
-        return self.pos
-
-    @Pos.setter
-    def Pos(self, value: str) -> None:
-        self.pos = value
-
-    @property
-    def Hidden(self) -> bool:
-        return self.hidden
-
-    @Hidden.setter
-    def Hidden(self, value: bool) -> None:
-        self.hidden = value
-
-    @property
-    def Player(self) -> str:
-        return self.player
-
-    @property
-    def PieceCode(self) -> str:
-        return self.piece_code
-
-    @property
-    def Row(self) -> int:
-        return self.row
-
-    @property
-    def Col(self) -> int:
-        return self.col
-
 
 @dataclass
 class XiangqiMove:
@@ -171,54 +130,6 @@ class XiangqiMove:
     @property
     def col_to(self) -> int:
         return int(self.to_pos[0])
-
-    @property
-    def From(self) -> str:
-        return self.from_pos
-
-    @From.setter
-    def From(self, value: str) -> None:
-        self.from_pos = value
-
-    @property
-    def To(self) -> str:
-        return self.to_pos
-
-    @To.setter
-    def To(self, value: str) -> None:
-        self.to_pos = value
-
-    @property
-    def Notation(self) -> str:
-        return self.notation
-
-    @Notation.setter
-    def Notation(self, value: str) -> None:
-        self.notation = value
-
-    @property
-    def Fen(self) -> str:
-        return self.fen
-
-    @Fen.setter
-    def Fen(self, value: str) -> None:
-        self.fen = value
-
-    @property
-    def RowFrom(self) -> int:
-        return self.row_from
-
-    @property
-    def RowTo(self) -> int:
-        return self.row_to
-
-    @property
-    def ColFrom(self) -> int:
-        return self.col_from
-
-    @property
-    def ColTo(self) -> int:
-        return self.col_to
 
 
 class MoveResolver(Protocol):
@@ -438,10 +349,6 @@ class XiangqiBoard:
     def visible_pieces(self) -> List[XiangqiPiece]:
         return [piece for piece in self.pieces if not piece.hidden]
 
-    @property
-    def VisiblePieces(self) -> List[XiangqiPiece]:
-        return self.visible_pieces
-
     def reset(self) -> None:
         self.erase()
         self.FEN = DEFAULT_POSITION
@@ -455,41 +362,29 @@ class XiangqiBoard:
                     piece.hidden = False
                     break
 
-    def applyPosition(self, position: Dict[str, str]) -> None:
-        self.apply_position(position)
-
     def get_piece_at_pos(self, pos: str) -> Optional[XiangqiPiece]:
         return next((piece for piece in self.pieces if piece.pos == pos and not piece.hidden), None)
-
-    def getPieceAtPos(self, pos: str) -> Optional[XiangqiPiece]:
-        return self.get_piece_at_pos(pos)
 
     def get_piece_by_id(self, id: str) -> Optional[XiangqiPiece]:
         return next((piece for piece in self.pieces if piece.id == id), None)
 
-    def getPieceById(self, id: str) -> Optional[XiangqiPiece]:
-        return self.get_piece_by_id(id)
-    
-    def get_col_by_code(self, code:str):
+
+    def get_col_by_code(self, code: str):
         col = None
-        for piece in self.VisiblePieces():
-            if piece.Code == code:
-                if not col:
-                    col = piece.Col
-                else:
+        for piece in self.visible_pieces:
+            if piece.code == code:
+                if col and col != piece.col:
                     raise ValueError(f"Ambiguous col by code {code}")
+                col = piece.col
         return col
 
     def get_pieces_at_same_column(self, col: int, code: str) -> List[XiangqiPiece]:
         pieces = [piece for piece in self.visible_pieces if piece.col == col and piece.code == code]
         if code[0] == FIRST_PLAYER:
-            pieces.sort(key=lambda piece: piece.row)
-        else:
             pieces.sort(key=lambda piece: piece.row, reverse=True)
+        else:
+            pieces.sort(key=lambda piece: piece.row)
         return pieces
-
-    def getPiecesAtSameColumn(self, col: int, code: str) -> List[XiangqiPiece]:
-        return self.get_pieces_at_same_column(col, code)
 
     def get_piece_index_within_same_column(self, piece: XiangqiPiece, pieces: List[XiangqiPiece]) -> str:
         if len(pieces) == 1:
@@ -508,9 +403,6 @@ class XiangqiBoard:
             return Modifier.MIDDLE
         return ""
 
-    def getPieceIndexWithinSameColumn(self, piece: XiangqiPiece, pieces: List[XiangqiPiece]) -> str:
-        return self.get_piece_index_within_same_column(piece, pieces)
-
     def apply_move(self, move: XiangqiMove) -> None:
         self.FEN = move.fen
         src_piece = self.get_piece_at_pos(move.from_pos)
@@ -521,16 +413,10 @@ class XiangqiBoard:
             dst_piece.hidden = True
         src_piece.pos = move.to_pos
 
-    def applyMove(self, move: XiangqiMove) -> None:
-        self.apply_move(move)
-
     def create_move(self, from_pos: str, to_pos: str) -> XiangqiMove:
         move = XiangqiMove(from_pos=from_pos, to_pos=to_pos, fen=self.FEN)
         move.notation = XiangqiBoardUtils.get_move_notation(move, self)
         return move
-
-    def createMove(self, from_pos: str, to_pos: str) -> XiangqiMove:
-        return self.create_move(from_pos, to_pos)
 
 
 class XiangqiBoardUtils:
@@ -553,10 +439,6 @@ class XiangqiBoardUtils:
         return True
 
     @staticmethod
-    def validFen(fen: str) -> bool:
-        return XiangqiBoardUtils.valid_fen(fen)
-
-    @staticmethod
     def is_valid_pos(pos: str) -> bool:
         try:
             col = int(pos[0])
@@ -564,10 +446,6 @@ class XiangqiBoardUtils:
         except (IndexError, ValueError):
             return False
         return ROW_LENGTH - row - 1 >= 0 and COLUMN_LENGTH - 1 - col >= 0
-
-    @staticmethod
-    def isValidPos(pos: str) -> bool:
-        return XiangqiBoardUtils.is_valid_pos(pos)
 
     @staticmethod
     def fen_to_obj(fen: str) -> Dict[str, str]:
@@ -588,10 +466,6 @@ class XiangqiBoardUtils:
         return position
 
     @staticmethod
-    def fenToObj(fen: str) -> Dict[str, str]:
-        return XiangqiBoardUtils.fen_to_obj(fen)
-
-    @staticmethod
     def obj_to_fen(obj: Dict[str, str]) -> str:
         fen = ""
         current_row = 0
@@ -603,10 +477,6 @@ class XiangqiBoardUtils:
                 fen += "/"
             current_row += 1
         return XiangqiBoardUtils.squeeze_fen_empty_squares(fen)
-
-    @staticmethod
-    def objToFen(obj: Dict[str, str]) -> str:
-        return XiangqiBoardUtils.obj_to_fen(obj)
 
     @staticmethod
     def expand_fen_empty_squares(fen: str) -> str:
@@ -629,6 +499,18 @@ class XiangqiBoardUtils:
     @staticmethod
     def piece_code_to_fen(piece_id: str) -> str:
         return piece_id[1].lower() if piece_id[0] == SECOND_PLAYER else piece_id[1].upper()
+
+    @staticmethod
+    def fen_to_ascii_board(fen: str) -> str:
+        if not fen:
+            return ""
+        fen = re.sub(r" .+$", "", fen)
+        fen = XiangqiBoardUtils.expand_fen_empty_squares(fen)
+        rows = [row.replace("1", " ") for row in fen.split("/")]
+        width = max((len(row) for row in rows), default=0)
+        border = f"+{'-' * width}+"
+        bordered_rows = [f"|{row.ljust(width)}|" for row in rows]
+        return "\n".join([border, *bordered_rows, border])
 
     @staticmethod
     def get_move_notation(move: XiangqiMove, board: Optional[XiangqiBoard]) -> str:
@@ -660,10 +542,6 @@ class XiangqiBoardUtils:
         return f"{piece.piece_code}{src_modifier}{src_col}{operator}{dst_modifier}"
 
     @staticmethod
-    def getMoveNotation(move: XiangqiMove, board: Optional[XiangqiBoard]) -> str:
-        return XiangqiBoardUtils.get_move_notation(move, board)
-
-    @staticmethod
     def parse_move_notation_list(
         move_notation_list: str,
         start_position: str = DEFAULT_POSITION,
@@ -680,25 +558,19 @@ class XiangqiBoardUtils:
         return moves
 
     @staticmethod
-    def parseMoveNotationList(
-        move_notation_list: str,
-        startPosition: str = DEFAULT_POSITION,
-    ) -> List[XiangqiMove]:
-        return XiangqiBoardUtils.parse_move_notation_list(move_notation_list, startPosition)
-
-    @staticmethod
     def parse_move_notation(notation: str, player: str, board: XiangqiBoard) -> XiangqiMove:
         normalized = re.sub(r"\s+", "", notation).upper()
-        match = re.match(r"^([BPXMVST])([sgt])?(\d?)([/+-])(\d)$", normalized)
+        match = re.match(r"^([BPXMVST])([SGT])?(\d?)([/+-])(\d)$", normalized)
         if not match:
             raise ValueError(f"Invalid move notation: {notation}")
         piece_code, src_modifier, src_col, operator, dst_modifier = match.groups()
         src_modifier = src_modifier.lower() if src_modifier else None
         if not src_modifier and not src_col:
             raise ValueError(f"Invalid move notation: {notation}")
-        if src_modifier and not src_col:
-            src_col = board.get_col_by_code(f"{player}{piece_code}")
-        source_column = _file_to_col(player, int(src_col))
+        if not src_col:
+            source_column = board.get_col_by_code(f"{player}{piece_code}")
+        else:
+            source_column = _file_to_col(player, int(src_col))
         candidates = board.get_pieces_at_same_column(source_column, f"{player}{piece_code}")
         if not candidates:
             raise ValueError(
@@ -709,9 +581,15 @@ class XiangqiBoardUtils:
                 f"Too many pieces found for move notation: {notation} with player {player} and piece code {piece_code}"
             )
         if len(candidates) > 1 and not src_modifier:
-            raise ValueError(
-                f"Ambiguous piece found for move notation: {notation} with player {player} and piece code {piece_code}"
-            )
+            if  piece_code in (PieceCode.ELEPHANT, PieceCode.ADMINISTRATOR):
+                if operator == Operator.FORWARD:
+                    src_modifier = Modifier.BACK
+                if operator == Operator.BACKWARD:
+                    src_modifier = Modifier.FRONT
+            else:
+                raise ValueError(
+                    f"Ambiguous piece found for move notation: {notation} with player {player} and piece code {piece_code}"
+                )
         piece = candidates[0]
         if len(candidates) > 1:
             if src_modifier == Modifier.BACK:
@@ -721,6 +599,7 @@ class XiangqiBoardUtils:
             elif src_modifier == Modifier.MIDDLE:
                 piece = candidates[1]
         return XiangqiBoardUtils.resolve_move(piece, operator, int(dst_modifier), board)
+    
 
     @staticmethod
     def resolve_move(

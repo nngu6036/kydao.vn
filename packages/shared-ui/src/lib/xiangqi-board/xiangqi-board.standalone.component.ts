@@ -548,6 +548,16 @@ export class XiangqiBoard implements Iterable<XiangqiPiece> {
     return this.pieces.find((piece) => piece.Id === id);
   }
 
+  getColByCode(code: string) : number {
+    let col = null;
+    for (const piece of this.VisiblePieces)
+        if (piece.Code == code)
+            if (col && col != piece.Col)
+                throw new Error(`Ambiguous col by code ${code}`);
+            col = piece.Col;
+      return col
+  }
+    
   get VisiblePieces(): XiangqiPiece[] {
     return this.pieces.filter((piece) => !piece.Hidden);
   }
@@ -558,9 +568,9 @@ export class XiangqiBoard implements Iterable<XiangqiPiece> {
     );
     const color = code[0];
     if (color === FIRST_PLAYER) {
-      pieces.sort((a, b) => a.Row - b.Row);
-    } else {
       pieces.sort((a, b) => b.Row - a.Row);
+    } else {
+      pieces.sort((a, b) => a.Row - b.Row);
     }
     return pieces;
   }
@@ -838,11 +848,16 @@ export class XiangqBoardUtils {
     board: XiangqiBoard,
   ): XiangqiMove {
     const normalized = notation.replace(/\s+/g, "").toUpperCase();
-    const match = normalized.match(/^([BPXMVST])([sgt])?(\d)([/+-])(\d)$/);
+    const match = normalized.match(/^([BPXMVST])([sgt])?(\d?)([/+-])(\d)$/);
     if (!match) {
       throw new Error(`Invalid move notation: ${notation}`);
     }
-    const [, pieceCode, srcModifier, srcCol, operator, dstModifier] = match;
+    let [, pieceCode, srcModifier, srcCol, operator, dstModifier] = match;
+    if (!srcModifier && !srcCol) {
+      throw new Error(`Invalid move notation: ${notation}`);
+    }
+    if (!srcCol) 
+      srcCol = `${board.getColByCode(`${player}${pieceCode}`)}`;
     const sourceColumn = player == FIRST_PLAYER ? RED_COLUMNS[srcCol]:BLACK_COLUMNS[srcCol]
     if (sourceColumn < 0) {
       throw new Error(`Invalid source file in notation: ${srcCol}`);

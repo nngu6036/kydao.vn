@@ -169,20 +169,19 @@ def normalize_move_list(
 
     normalized_moves = [move.replace(".", "+").replace("C", "B") for move in moves]
     try:
-        resolved_start_position = start_position or DEFAULT_POSITION
         parsed_moves = XiangqiBoardUtils.parse_move_notation_list(
             ",".join(normalized_moves),
-            resolved_start_position,
         )
         board = XiangqiBoard()
-        board.FEN = resolved_start_position
-        standard_moves = []
+        board.FEN = DEFAULT_POSITION
+        normalized_notation = []
         for move in parsed_moves:
-            standard_moves.append(XiangqiBoardUtils.get_move_notation(move, board))
-            board.apply_move(move)
+            notation = XiangqiBoardUtils.get_move_notation(move, board)
+            normalized_notation.append(notation)
+            board.apply_move(move)    
     except Exception as exc:
         return None, [f"board parse failed: {exc}"]
-    return ",".join(standard_moves), []
+    return ",".join(normalized_notation), []
 
 
 def clean_string(value: Any) -> Optional[str]:
