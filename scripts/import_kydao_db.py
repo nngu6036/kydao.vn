@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,6 @@ RESULT_MAP = {
     "loss": "lose",
     "draw": "draw",
 }
-from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -264,7 +263,7 @@ def upsert_tournament_record(
     if not tournament_name:
         raise ValueError("record must include tournamentName")
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     tournament = Tournament(
         id=clean_string(record.get("id")) or "",
         created_date=parse_datetime(record.get("createdDate") or record.get("created_date")) or now,
@@ -307,7 +306,7 @@ def upsert_player_record(
     if not player_name:
         raise ValueError("record must include playerName")
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     player = Player(
         id=clean_string(record.get("id")) or "",
         created_date=parse_datetime(record.get("createdDate") or record.get("created_date")) or now,
@@ -376,7 +375,7 @@ def upsert_game_record(
         or record.get("eventName")
     )
     tournament_doc = find_tournament_by_name(db, tournament_name, tournament_cache)
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
 
     game_doc = {
         "red_player_id": red_doc["_id"],
@@ -441,7 +440,7 @@ def upsert_player(
     if player_cache is not None and name in player_cache:
         return player_cache[name]
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     player = db.players.find_one_and_update(
         {"name": name},
         {
@@ -507,9 +506,12 @@ def main() -> None:
     parser.add_argument("--datafile", required=True, help="JSON file containing an array of game records")
     args = parser.parse_args()
 
-    import_tournament(args)
-    import_player(args)
-    import_game(args)
+    if args.type == "tournament":
+        import_tournament(args)
+    elif args.type == "player":
+        import_player(args)
+    else:
+        import_game(args)
 
 
 
