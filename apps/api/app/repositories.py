@@ -68,6 +68,15 @@ def _as_object_id(value: Any) -> ObjectId | None:
     return None
 
 
+def _id_values(value: Any) -> list[Any]:
+    object_id = _as_object_id(value)
+    if object_id:
+        return [object_id, str(object_id)]
+    if isinstance(value, str):
+        return [value]
+    return [value]
+
+
 def _utc_now() -> datetime:
     return datetime.now(UTC)
 
@@ -200,8 +209,22 @@ class PlayerRepository(MongoRepository):
         return self._map_player(await super().create(payload))
 
     async def update(self, id: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+        should_update_game_names = "name" in payload
         item = await super().update(id, payload)
+        if item and should_update_game_names:
+            await self._update_game_player_names(item["id"], item["name"])
         return self._map_player(item) if item else None
+
+    async def _update_game_player_names(self, player_id: str, name: str) -> None:
+        id_values = _id_values(player_id)
+        await self.db["games"].update_many(
+            {"$or": [{"red_player_id": {"$in": id_values}}, {"red_id": {"$in": id_values}}]},
+            {"$set": {"red_name": name, "updated_date": _utc_now()}},
+        )
+        await self.db["games"].update_many(
+            {"$or": [{"black_player_id": {"$in": id_values}}, {"black_id": {"$in": id_values}}]},
+            {"$set": {"black_name": name, "updated_date": _utc_now()}},
+        )
 
     def _map_player(self, item: dict[str, Any]) -> dict[str, Any]:
         item["kydao_id"] = item.get("kydao_id") or self._kydao_id(item.get("url"))
@@ -277,13 +300,30 @@ class TournamentRepository(MongoRepository):
         return [_public_doc(document) async for document in cursor]
 
     async def update(self, id: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+        should_update_game_names = "name" in payload
         payload = self._write_payload(payload)
         document = await self._find_one_and_update(self.collection, id, payload)
         if document:
-            return _public_doc(document)
+            item = _public_doc(document)
+            if should_update_game_names:
+                await self._update_game_tournament_names(item["id"], item["name"])
+            return item
 
         fallback_document = await self._find_one_and_update(self.fallback_collection, id, payload)
-        return _public_doc(fallback_document) if fallback_document else None
+        if not fallback_document:
+            return None
+
+        item = _public_doc(fallback_document)
+        if should_update_game_names:
+            await self._update_game_tournament_names(item["id"], item["name"])
+        return item
+
+    async def _update_game_tournament_names(self, tournament_id: str, name: str) -> None:
+        id_values = _id_values(tournament_id)
+        await self.db["games"].update_many(
+            {"$or": [{"tournament_id": {"$in": id_values}}, {"event_id": {"$in": id_values}}]},
+            {"$set": {"tournament_name": name, "updated_date": _utc_now()}},
+        )
 
 
 class GameRepository(MongoRepository):

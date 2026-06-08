@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import hmac
+import logging
 from functools import lru_cache
 from typing import Any
 
@@ -13,6 +14,8 @@ from starlette.concurrency import run_in_threadpool
 from app.config import get_settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger("chess_elo.api.auth")
+logger.setLevel(logging.INFO)
 
 
 class LoginRequest(BaseModel):
@@ -23,6 +26,7 @@ class LoginRequest(BaseModel):
 @lru_cache
 def cognito_client():
     settings = get_settings()
+    logger.info("Creating Cognito client region=%s", settings.aws_region)
     return boto3.client("cognito-idp", region_name=settings.aws_region)
 
 
@@ -38,6 +42,7 @@ def secret_hash(username: str, client_id: str, client_secret: str) -> str:
 def cognito_login(username: str, password: str) -> dict[str, Any]:
     settings = get_settings()
     if not settings.cognito_client_id:
+        logger.error("Cognito login requested but CHESS_ELO_COGNITO_CLIENT_ID is not configured")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Authentication provider is not configured",
@@ -55,6 +60,14 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
         )
 
     try:
+        logger.info(
+            "Calling Cognito initiate_auth auth_flow=%s region=%s client_configured=%s client_secret_configured=%s user_pool_configured=%s",
+            "USER_PASSWORD_AUTH",
+            settings.aws_region,
+            bool(settings.cognito_client_id),
+            bool(settings.cognito_client_secret),
+            bool(settings.cognito_user_pool_id),
+        )
         return cognito_client().initiate_auth(
             ClientId=settings.cognito_client_id,
             AuthFlow="USER_PASSWORD_AUTH",
@@ -64,7 +77,7 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
         error = exc.response.get("Error", {})
         error_code = error.get("Code")
         error_message = error.get("Message", "")
-        print(f"Cognito login error: {error_code}: {error_message}")
+        logger.warning("Cognito login error code=%s message=%s", error_code, error_message)
         if error_code in {
             "NotAuthorizedException",
             "UserNotFoundException",
@@ -83,9 +96,11 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
 
 @router.post("/login")
 async def login(payload: LoginRequest):
+    logger.info("Auth login request received username_present=%s password_present=%s", bool(payload.username), bool(payload.password))
     response = await run_in_threadpool(cognito_login, payload.username, payload.password)
 
     if response.get("ChallengeName"):
+        logger.warning("Cognito login requires challenge challenge=%s", response["ChallengeName"])
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Cognito challenge required: {response['ChallengeName']}",
@@ -93,11 +108,19 @@ async def login(payload: LoginRequest):
 
     result = response.get("AuthenticationResult")
     if not result or not result.get("AccessToken"):
+        logger.error("Cognito login returned invalid response has_authentication_result=%s", bool(result))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Authentication provider returned an invalid response",
         )
 
+    logger.info(
+        "Auth login succeeded token_type=%s expires_in=%s has_id_token=%s has_refresh_token=%s",
+        result.get("TokenType", "Bearer").lower(),
+        result.get("ExpiresIn"),
+        bool(result.get("IdToken")),
+        bool(result.get("RefreshToken")),
+    )
     return {
         "access_token": result["AccessToken"],
         "token_type": result.get("TokenType", "Bearer").lower(),
