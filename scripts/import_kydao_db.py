@@ -6,7 +6,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 from pymongo import MongoClient, ReturnDocument
 from pymongo.errors import PyMongoError
@@ -14,6 +14,8 @@ from pymongo.errors import PyMongoError
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
 PROGRESS_EVERY = 100
+MongoDoc = dict[str, Any]
+Cache = dict[str, Optional[MongoDoc]]
 
 
 RESULT_MAP = {
@@ -49,54 +51,54 @@ class Player(BaseModel):
     model_config = {"use_enum_values": True}
 
     id: str
-    created_date: datetime | None = None
-    updated_date: datetime | None = None
+    created_date: Optional[datetime] = None
+    updated_date: Optional[datetime] = None
     name: str
-    url: str | None = None
-    kydao_id: str | None = None
-    title: str | None = None
-    nationality: str | None = None
-    location: str | None = None
-    initial_level: PlayerInitialLevel | None = None
-    rating: int | None = None
-    change: int | None = None
+    url: Optional[str] = None
+    kydao_id: Optional[str] = None
+    title: Optional[str] = None
+    nationality: Optional[str] = None
+    location: Optional[str] = None
+    initial_level: Optional[PlayerInitialLevel] = None
+    rating: Optional[int] = None
+    change: Optional[int] = None
 
 
 class Tournament(BaseModel):
     id: str
-    created_date: datetime | None = None
-    updated_date: datetime | None = None
+    created_date: Optional[datetime] = None
+    updated_date: Optional[datetime] = None
     name: str
-    url: str | None = None
-    status: str | None = None
-    date: str | None = None
-    location: str | None = None
-    participants: int | None = None
+    url: Optional[str] = None
+    status: Optional[str] = None
+    date: Optional[str] = None
+    location: Optional[str] = None
+    participants: Optional[int] = None
 
 
 class Game(BaseModel):
     model_config = {"use_enum_values": True}
 
     id: str
-    created_date: datetime | None = None
-    updated_date: datetime | None = None
-    red_id: str | None = None
-    red_name: str | None = None
-    black_id: str | None = None
-    black_name: str | None = None
-    result: GameResult | None = None
-    tournament_id: str | None = None
-    tournament_name: str | None = None
-    opening_id: str | None = None
-    opening: str | None = None
-    date: str | None = None
-    moves: int | None = None
-    move_list: str | list[str] | None = None
-    raw_move_list: str | None = None
-    begin_fen: str | None = None
-    start_color: str | None = None
+    created_date: Optional[datetime] = None
+    updated_date: Optional[datetime] = None
+    red_id: Optional[str] = None
+    red_name: Optional[str] = None
+    black_id: Optional[str] = None
+    black_name: Optional[str] = None
+    result: Optional[GameResult] = None
+    tournament_id: Optional[str] = None
+    tournament_name: Optional[str] = None
+    opening_id: Optional[str] = None
+    opening: Optional[str] = None
+    date: Optional[str] = None
+    moves: Optional[int] = None
+    move_list: Optional[Union[str, list[str]]] = None
+    raw_move_list: Optional[str] = None
+    begin_fen: Optional[str] = None
+    start_color: Optional[str] = None
     analyzed: bool = False
-    url: str | None = None
+    url: Optional[str] = None
 
 
 
@@ -120,7 +122,7 @@ def import_tournament(args) -> None:
     imported = 0
     skipped = 0
     total = len(records)
-    tournament_cache: dict[str, dict[str, Any] | None] = {}
+    tournament_cache: Cache = {}
     for index, record in enumerate(records):
         if not isinstance(record, dict):
             skipped += 1
@@ -161,7 +163,7 @@ def import_player(args) -> None:
     imported = 0
     skipped = 0
     total = len(records)
-    player_cache: dict[str, dict[str, Any] | None] = {}
+    player_cache: Cache = {}
     for index, record in enumerate(records):
         if not isinstance(record, dict):
             skipped += 1
@@ -211,8 +213,8 @@ def import_game(args) -> None:
     imported = 0
     skipped = 0
     total = len(records)
-    tournament_cache: dict[str, dict[str, Any] | None] = {}
-    player_cache: dict[str, dict[str, Any] | None] = {}
+    tournament_cache: Cache = {}
+    player_cache: Cache = {}
     for index, record in enumerate(records):
         if not isinstance(record, dict):
             skipped += 1
@@ -253,7 +255,7 @@ def log_progress(kind: str, processed: int, total: int, imported: int, skipped: 
 def upsert_tournament_record(
     db,
     record: dict[str, Any],
-    tournament_cache: dict[str, dict[str, Any] | None] | None = None,
+    tournament_cache: Optional[Cache] = None,
 ) -> None:
     tournament_name = clean_string(
         record.get("tournamentName")
@@ -296,7 +298,7 @@ def upsert_tournament_record(
 def upsert_player_record(
     db,
     record: dict[str, Any],
-    player_cache: dict[str, dict[str, Any] | None] | None = None,
+    player_cache: Optional[Cache] = None,
 ) -> None:
     player_name = clean_string(
         record.get("playerName")
@@ -340,7 +342,7 @@ def upsert_player_record(
     logging.info("Imported player: %s", player.name)
 
 
-def normalize_initial_level(value: Any) -> PlayerInitialLevel | None:
+def normalize_initial_level(value: Any) -> Optional[PlayerInitialLevel]:
     value = clean_string(value)
     if value is None:
         return None
@@ -353,8 +355,8 @@ def normalize_initial_level(value: Any) -> PlayerInitialLevel | None:
 def upsert_game_record(
     db,
     record: dict[str, Any],
-    tournament_cache: dict[str, dict[str, Any] | None] | None = None,
-    player_cache: dict[str, dict[str, Any] | None] | None = None,
+    tournament_cache: Optional[Cache] = None,
+    player_cache: Optional[Cache] = None,
 ) -> None:
     url = clean_string(record.get("url"))
     external_id = clean_string(record.get("externalId") or record.get("external_id") or record.get("key"))
@@ -416,9 +418,9 @@ def upsert_game_record(
 
 def find_tournament_by_name(
     db,
-    name: str | None,
-    tournament_cache: dict[str, dict[str, Any] | None] | None = None,
-) -> dict[str, Any] | None:
+    name: Optional[str],
+    tournament_cache: Optional[Cache] = None,
+) -> Optional[MongoDoc]:
     if not name:
         return None
     if tournament_cache is not None and name in tournament_cache:
@@ -435,8 +437,8 @@ def find_tournament_by_name(
 def upsert_player(
     db,
     name: str,
-    player_cache: dict[str, dict[str, Any] | None] | None = None,
-) -> dict[str, Any]:
+    player_cache: Optional[Cache] = None,
+) -> MongoDoc:
     if player_cache is not None and name in player_cache:
         return player_cache[name]
 
@@ -455,21 +457,21 @@ def upsert_player(
     return player
 
 
-def clean_string(value: Any) -> str | None:
+def clean_string(value: Any) -> Optional[str]:
     if value is None:
         return None
     value = str(value).strip()
     return value or None
 
 
-def normalize_result(value: Any) -> str | None:
+def normalize_result(value: Any) -> Optional[str]:
     value = clean_string(value)
     if value is None:
         return None
     return RESULT_MAP.get(value, RESULT_MAP.get(value.upper(), value.lower()))
 
 
-def parse_datetime(value: Any) -> datetime | None:
+def parse_datetime(value: Any) -> Optional[datetime]:
     value = clean_string(value)
     if not value:
         return None
@@ -479,7 +481,7 @@ def parse_datetime(value: Any) -> datetime | None:
         return None
 
 
-def parse_int(value: Any) -> int | None:
+def parse_int(value: Any) -> Optional[int]:
     if value is None or value == "":
         return None
     try:
