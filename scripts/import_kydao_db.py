@@ -28,6 +28,7 @@ RESULT_MAP = {
     "loss": "lose",
     "draw": "draw",
 }
+IMPORT_COLLECTIONS = ("tournaments", "players", "games")
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -234,6 +235,17 @@ def import_game(args) -> None:
 
 def parse_json(args) -> None:
     import_game(args)
+
+
+def reset_database(args) -> None:
+    uri = args.mongo_uri
+    dbname = os.environ.get("MONGO_DB", "kydao")
+    client = MongoClient(uri)
+    db = client[dbname]
+
+    for collection_name in IMPORT_COLLECTIONS:
+        db.drop_collection(collection_name)
+        logging.info("Dropped collection: %s.%s", dbname, collection_name)
 
 
 def log_progress(kind: str, processed: int, total: int, imported: int, skipped: int) -> None:
@@ -505,8 +517,16 @@ def main() -> None:
         default=os.environ.get("MONGO_URI", "mongodb://localhost:27017"),
         help="MongoDB connection URI. Defaults to MONGO_URI or mongodb://localhost:27017",
     )
+    parser.add_argument(
+        "--reset-database",
+        action="store_true",
+        help="Drop imported collections before importing: tournaments, players, games",
+    )
     parser.add_argument("--datafile", required=True, help="JSON file containing an array of game records")
     args = parser.parse_args()
+
+    if args.reset_database:
+        reset_database(args)
 
     import_tournament(args)
     import_player(args)
