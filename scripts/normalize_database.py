@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import re
+import base64
+import binascii
 from datetime import datetime, timezone
 from typing import Any, Optional, Union
 
@@ -93,8 +95,9 @@ def normalize_game(args) -> None:
                 invalid_reasons.append(f"invalid result: {result}")
 
         move_list = record.get("move_list")
+        key = clean_string(record.get("key"))
         if isinstance(move_list, str):
-            normalized_move_list, invalid_moves = normalize_move_list(move_list)
+            normalized_move_list, invalid_moves = normalize_move_list(move_list, key)
             if invalid_moves:
                 invalid_reasons.append(f"invalid moves: {', '.join(invalid_moves)}")
             elif normalized_move_list is None:
@@ -130,10 +133,17 @@ def normalize_game(args) -> None:
     )
 
 
-def normalize_move_list(move_list: str) -> tuple[Optional[str], list[str]]:
+def normalize_move_list(move_list: str, key: Optional[str]) -> tuple[Optional[str], list[str]]:
     move_list = move_list.strip()
     if not move_list or "," in move_list:
         return None, []
+
+    if key and key in move_list:
+        encoded_move_list = move_list.replace(key, "")
+        try:
+            move_list = base64.b64decode(encoded_move_list, validate=True).decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError) as exc:
+            return None, [f"base64 decode failed: {exc}"]
 
     moves = [match.group(0) for match in MOVE_PATTERN.finditer(move_list)]
     if not moves or "".join(moves) != move_list:
