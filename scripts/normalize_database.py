@@ -13,10 +13,15 @@ from typing import Any, Optional, Union
 from bson import ObjectId
 from pymongo import MongoClient
 
+try:
+    from .xiangqi_utils import DEFAULT_POSITION, XiangqiBoard, XiangqiBoardUtils
+except ImportError:
+    from xiangqi_utils import DEFAULT_POSITION, XiangqiBoard, XiangqiBoardUtils
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 MongoDoc = dict[str, Any]
-MOVE_PATTERN = re.compile(r"[A-Z].?\d.\d")
-MOVE_FULL_PATTERN = re.compile(r"^[A-Z].?\d.\d$")
+MOVE_PATTERN = re.compile(r"[A-Z].?\d?.\d")
+MOVE_FULL_PATTERN = re.compile(r"^[A-Z].?\d?.\d$")
 
 RESULT_MAP = {
     "WIN": "win",
@@ -25,6 +30,10 @@ RESULT_MAP = {
     "DRAW": "draw",
     "win": "win",
     "lose": "lose",
+    "red_win": "win",
+    "red_lose": "lose",
+    "black_win": "lose",
+    "black_lose": "win",
     "loss": "lose",
     "draw": "draw",
 }
@@ -96,8 +105,9 @@ def normalize_game(args) -> None:
 
         move_list = record.get("move_list")
         key = clean_string(record.get("key"))
+        begin_fen = clean_string(record.get("begin_fen") or record.get("beginFEN"))
         if isinstance(move_list, str):
-            normalized_move_list, invalid_moves = normalize_move_list(move_list, key)
+            normalized_move_list, invalid_moves = normalize_move_list(move_list, key, begin_fen)
             if invalid_moves:
                 invalid_reasons.append(f"invalid moves: {', '.join(invalid_moves)}")
             elif normalized_move_list is None:
@@ -133,7 +143,11 @@ def normalize_game(args) -> None:
     )
 
 
-def normalize_move_list(move_list: str, key: Optional[str]) -> tuple[Optional[str], list[str]]:
+def normalize_move_list(
+    move_list: str,
+    key: Optional[str],
+    start_position: Optional[str] = None,
+) -> tuple[Optional[str], list[str]]:
     move_list = move_list.strip()
     if not move_list or "," in move_list:
         return None, []
@@ -154,7 +168,21 @@ def normalize_move_list(move_list: str, key: Optional[str]) -> tuple[Optional[st
         return None, invalid_moves
 
     normalized_moves = [move.replace(".", "+").replace("C", "B") for move in moves]
-    return ",".join(normalized_moves), []
+    try:
+        resolved_start_position = start_position or DEFAULT_POSITION
+        parsed_moves = XiangqiBoardUtils.parse_move_notation_list(
+            ",".join(normalized_moves),
+            resolved_start_position,
+        )
+        board = XiangqiBoard()
+        board.FEN = resolved_start_position
+        standard_moves = []
+        for move in parsed_moves:
+            standard_moves.append(XiangqiBoardUtils.get_move_notation(move, board))
+            board.apply_move(move)
+    except Exception as exc:
+        return None, [f"board parse failed: {exc}"]
+    return ",".join(standard_moves), []
 
 
 def clean_string(value: Any) -> Optional[str]:
