@@ -508,12 +508,9 @@ def main() -> None:
     parser.add_argument("--datafile", required=True, help="JSON file containing an array of game records")
     args = parser.parse_args()
 
-    if args.type == "tournament":
-        import_tournament(args)
-    elif args.type == "player":
-        import_player(args)
-    else:
-        import_game(args)
+    import_tournament(args)
+    import_player(args)
+    import_game(args)
 
 
 
