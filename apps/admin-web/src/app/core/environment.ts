@@ -1,7 +1,7 @@
-import environmentSettings from '../../environments/.env.json';
+import { adminEnvironment } from '../../environments/environment';
 
 export interface AdminEnvironment {
   apiBaseUrl: string;
 }
 
-export const environment: AdminEnvironment = environmentSettings;
+export const environment: AdminEnvironment = adminEnvironment;

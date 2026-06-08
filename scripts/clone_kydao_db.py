@@ -29,41 +29,81 @@ import base64
 
 logging.basicConfig(level=logging.INFO)
 
-@dataclass
-class Player:
+from datetime import datetime
+from enum import Enum
+
+from pydantic import BaseModel, Field
+
+
+class PlayerInitialLevel(str, Enum):
+    A2_LEVEL = "a2_level"
+    A1_LEVEL = "a1_level"
+    NATIONAL_MASTER = "national_master"
+    INTL_MASTER = "international_master"
+    INTL_GMASTER = "international_grand_master"
+
+
+class GameResult(str, Enum):
+    WIN = "win"
+    LOSE = "lose"
+    DRAW = "draw"
+
+
+class Player(BaseModel):
+    model_config = {"use_enum_values": True}
+
+    id: str
+    created_date: datetime | None = None
+    updated_date: datetime | None = None
     name: str
-    url: str
-    id: Optional[str] = None
+    url: str | None = None
+    kydao_id: str | None = None
+    title: str | None = None
+    location: str | None = None
+    initial_level: PlayerInitialLevel | None = None
+    rating: int | None = None
+    change: int | None = None
 
-@dataclass
-class Event:
+
+class Tournament(BaseModel):
+    id: str
+    created_date: datetime | None = None
+    updated_date: datetime | None = None
     name: str
-    id: Optional[str] = None
+    url: str | None = None
+    status: str | None = None
+    date: str | None = None
+    location: str | None = None
+    participants: int | None = None
 
-@dataclass
-class PlayerGame:
-    red_player: str
-    black_player: str
-    event: str
-    url: str
-    result: str
-    id: Optional[str] = None
-    red_player_id: Optional[str] = None
-    black_player_id: Optional[str] = None
-    event_id: Optional[str] = None
-    move_list: Optional[List[str]] = None
-    begin_fen: Optional[str] = None
-    start_color: Optional[str] = None
 
-@dataclass
-class GameList:
-    html: str
-    url: str
+class Game(BaseModel):
+    model_config = {"use_enum_values": True}
 
-players: Dict[str, Player] = {}
-games: Set[tuple] = set()
-events: Dict[str, Event] = {}
-player_queue: List[Player] = []
+    id: str
+    created_date: datetime | None = None
+    updated_date: datetime | None = None
+    red_id: str | None = None
+    red_name: str | None = None
+    black_id: str | None = None
+    black_name: str | None = None
+    result: GameResult | None = None
+    tournament_id: str | None = None
+    tournament_name: str | None = None
+    opening_id: str | None = None
+    opening: str | None = None
+    date: str | None = None
+    moves: int | None = None
+    move_list: str | list[str] | None = None
+    raw_move_list: str | None = None
+    begin_fen: str | None = None
+    start_color: str | None = None
+    analyzed: bool = False
+    url: str | None = None
+
+
+
+
 
 def fetch_html(
     url: str,

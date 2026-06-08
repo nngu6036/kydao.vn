@@ -1,0 +1,3 @@
+export const adminEnvironment = {
+  apiBaseUrl: "http://ec2-3-27-156-182.ap-southeast-2.compute.amazonaws.com:8000",
+};

@@ -100,6 +100,15 @@ export const ENTITY_CONFIGS: Record<EntityKind, EntityConfig> = {
     fields: [
       { key: 'name', label: 'Tên' },
       { key: 'title', label: 'Danh hiệu' },
+      {
+        key: 'nationality',
+        label: 'Quốc tịch',
+        type: 'select',
+        options: [
+          { value: 'vn', label: 'Việt Nam' },
+          { value: 'non-vn', label: 'ngoài Việt Nam' },
+        ],
+      },
       { key: 'location', label: 'Địa phương' },
       {
         key: 'initial_level',

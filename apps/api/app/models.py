@@ -28,6 +28,7 @@ class Player(BaseModel):
     url: str | None = None
     kydao_id: str | None = None
     title: str | None = None
+    nationality: str | None = None
     location: str | None = None
     initial_level: PlayerInitialLevel | None = None
     rating: int | None = None

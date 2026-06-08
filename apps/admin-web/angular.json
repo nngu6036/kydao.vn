@@ -40,8 +40,8 @@
             "dev": {
               "fileReplacements": [
                 {
-                  "replace": "src/environments/.env.json",
-                  "with": "src/environments/.env.dev.json"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
                 }
               ]
             },
@@ -49,8 +49,8 @@
               "baseHref": "/quantri/",
               "fileReplacements": [
                 {
-                  "replace": "src/environments/.env.json",
-                  "with": "src/environments/.env.prod.json"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ]
             }
