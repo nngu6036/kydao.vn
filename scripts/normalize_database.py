@@ -113,9 +113,8 @@ def normalize_game(args) -> None:
 
         move_list = record.get("move_list")
         key = clean_string(record.get("key"))
-        begin_fen = clean_string(record.get("begin_fen") or record.get("beginFEN"))
         if isinstance(move_list, str):
-            normalized_move_list, invalid_moves = normalize_move_list(move_list, key, begin_fen)
+            normalized_move_list, invalid_moves = normalize_move_list(move_list, key)
             if invalid_moves:
                 invalid_reasons.append(f"invalid moves: {', '.join(invalid_moves)}")
             elif normalized_move_list is None:
