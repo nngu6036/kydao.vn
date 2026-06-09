@@ -88,9 +88,16 @@ def normalize_game(args) -> None:
     move_list_fixed = 0
 
     filter_ = {"normalized": {"$ne": True}}
-    total = db.games.count_documents(filter_)
+    unnormalized_total = db.games.count_documents(filter_)
+    total = unnormalized_total
     if args.count is not None:
         total = min(total, args.count)
+
+    logging.info(
+        "Found %s unnormalized game records; processing %s in this run",
+        unnormalized_total,
+        total,
+    )
 
     cursor = db.games.find(filter_)
     if args.count is not None:
