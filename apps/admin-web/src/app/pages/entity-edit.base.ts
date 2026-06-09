@@ -81,9 +81,20 @@ export const ENTITY_EDIT_TEMPLATE = `
       </label>
 
       <div class="form-actions">
+        <div class="form-action-buttons">
         <button class="primary-action" type="submit" [disabled]="saving">
           {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
         </button>
+        <button
+          class="secondary-action danger-action"
+          type="button"
+          *ngIf="activeId"
+          [disabled]="saving"
+          (click)="deleteCurrent()"
+        >
+          Xóa
+        </button>
+        </div>
         <span class="save-state" *ngIf="message">{{ message }}</span>
       </div>
     </form>
@@ -158,11 +169,37 @@ export abstract class EntityEditBasePage {
       next: () => {
         this.saving = false;
         this.message = 'Đã lưu';
-        this.router.navigate(['/', kind]);
+        if (this.navigateToListAfterSave()) {
+          this.router.navigate(['/', kind]);
+        }
       },
       error: () => {
         this.saving = false;
         this.message = 'Lưu thất bại. Hãy kiểm tra kết nối API.';
+      },
+    });
+  }
+
+  deleteCurrent(): void {
+    if (!this.activeConfig || !this.activeId) {
+      return;
+    }
+
+    if (!window.confirm(`Xóa ${this.activeConfig.singular} này?`)) {
+      return;
+    }
+
+    this.saving = true;
+    this.message = '';
+    const kind = this.activeConfig.kind;
+    this.api.delete(kind, this.activeId).subscribe({
+      next: () => {
+        this.saving = false;
+        this.router.navigate(['/', kind]);
+      },
+      error: () => {
+        this.saving = false;
+        this.message = 'Không thể xóa bản ghi.';
       },
     });
   }
@@ -235,6 +272,10 @@ export abstract class EntityEditBasePage {
 
   protected afterFormDataLoaded(): void {
     // Subclasses can react after existing entity data has been patched into the form.
+  }
+
+  protected navigateToListAfterSave(): boolean {
+    return true;
   }
 
   private buildForm(config: EntityConfig): void {

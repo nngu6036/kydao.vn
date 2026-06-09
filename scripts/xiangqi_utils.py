@@ -562,7 +562,7 @@ class XiangqiBoardUtils:
             move = XiangqiBoardUtils.parse_move_notation(token, player, board)
             moves.append(move)
             board.apply_move(move)
-            #print(XiangqiBoardUtils.fen_to_ascii_board(XiangqiBoardUtils.expand_fen_empty_squares(board.FEN)))
+           #print(XiangqiBoardUtils.fen_to_ascii_board(XiangqiBoardUtils.expand_fen_empty_squares(board.FEN)))
             #for p in board.visible_pieces:
             #    print(p.code, p.pos)
         return moves

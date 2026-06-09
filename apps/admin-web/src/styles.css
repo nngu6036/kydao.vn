@@ -189,6 +189,16 @@ h2 {
   color: var(--accent);
 }
 
+.danger-action {
+  border-color: #f3b4ad;
+  background: #ffffff;
+  color: #b42318;
+}
+
+.danger-action:hover:not(:disabled) {
+  background: #fff1ef;
+}
+
 .primary-action:disabled {
   cursor: default;
   opacity: 0.65;
@@ -407,6 +417,12 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+.form-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .quick-grid {

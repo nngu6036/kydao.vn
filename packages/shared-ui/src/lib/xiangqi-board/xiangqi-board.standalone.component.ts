@@ -830,9 +830,26 @@ export class XiangqBoardUtils {
       .filter(Boolean);
     for (let index = 0; index < tokens.length; index++) {
       const player = index % 2 === 0 ? FIRST_PLAYER : SECOND_PLAYER;
-      const move = this.parseMoveNotation(tokens[index], player, board);
-      moves.push(move);
-      board.applyMove(move);
+      try {
+        const move = this.parseMoveNotation(tokens[index], player, board);
+        moves.push(move);
+        board.applyMove(move)
+      }
+      catch (error) {
+        console.error("Failed to parse Xiangqi move notation", {
+          error,
+          index,
+          notation: tokens[index],
+          player,
+          startPosition,
+          boardFen: board.FEN,
+          visiblePieces: board.VisiblePieces.map((piece) => ({
+            code: piece.Code,
+            pos: piece.Pos,
+          })),
+        });
+        return moves;
+      }
     }
     return moves;
   }
@@ -854,17 +871,15 @@ export class XiangqBoardUtils {
     }
     if (!srcCol) 
       srcCol = `${board.getColByCode(`${player}${pieceCode}`)}`;
-    const sourceColumn = player == FIRST_PLAYER ? RED_COLUMNS[srcCol]:BLACK_COLUMNS[srcCol]
-    if (sourceColumn < 0) {
-      throw new Error(`Invalid source file in notation: ${srcCol}`);
-    }
+    else
+      srcCol = player == FIRST_PLAYER ? `${RED_COLUMNS[srcCol]}`:`${BLACK_COLUMNS[srcCol]}`
     const candidates = board.getPiecesAtSameColumn(
-      sourceColumn,
+       Number.parseInt(srcCol),
       `${player}${pieceCode}`,
     );
     if (candidates.length === 0) {
       throw new Error(
-        `No piece found for move notation: ${notation} with player ${player} and piece code ${pieceCode}`,
+        `No piece found for move notation: ${notation} with player ${player} and piece code ${pieceCode} at column ${srcCol}`,
       );
     }
     if (candidates.length > 3) {
@@ -1363,7 +1378,6 @@ export class XiangqiBoardComponent
   private canMovePiece(pieceId: string): boolean {
     const piece = this.board.getPieceById(pieceId);
     if (!piece) return false;
-    console.log(this.nextPlayer, piece)
     return this.nextPlayer === piece.Player;
   }
 

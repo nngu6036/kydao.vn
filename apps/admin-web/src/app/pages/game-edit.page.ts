@@ -85,9 +85,20 @@ const GAME_EDIT_TEMPLATE = `
       </label>
 
       <div class="form-actions">
+        <div class="form-action-buttons">
         <button class="primary-action" type="submit" [disabled]="saving">
           {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
         </button>
+        <button
+          class="secondary-action danger-action"
+          type="button"
+          *ngIf="activeId"
+          [disabled]="saving"
+          (click)="deleteCurrent()"
+        >
+          Xóa
+        </button>
+        </div>
         <span class="save-state" *ngIf="message">{{ message }}</span>
       </div>
     </form>
@@ -316,6 +327,10 @@ export class GameEditPage extends EntityEditBasePage {
     setTimeout(() => {
       this.selectMove(this.moveCount()-1);
     });
+  }
+
+  protected override navigateToListAfterSave(): boolean {
+    return false;
   }
 
   private toMoveTokens(value: unknown): string[] {
