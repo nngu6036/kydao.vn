@@ -370,13 +370,19 @@ class XiangqiBoard:
 
 
     def get_col_by_code(self, code: str):
-        col = None
+        counts = {i:0 for i in range(COLUMN_LENGTH)}
         for piece in self.visible_pieces:
             if piece.code == code:
-                if col and col != piece.col:
-                    raise ValueError(f"Ambiguous col by code {code}")
-                col = piece.col
-        return col
+                counts[piece.col] +=1
+        candidate_cols = []
+        for col, count in counts.items():
+            if count > 1:
+                candidate_cols.append(col)
+        if len(candidate_cols) >2 :
+            raise ValueError(f"Ambiguity col for code {code}")
+        if len(candidate_cols) == 0 :
+            raise ValueError(f"Cannot resolve col for code {code}")
+        return candidate_cols[0]
 
     def get_pieces_at_same_column(self, col: int, code: str) -> List[XiangqiPiece]:
         pieces = [piece for piece in self.visible_pieces if piece.col == col and piece.code == code]
@@ -551,10 +557,14 @@ class XiangqiBoardUtils:
         moves: List[XiangqiMove] = []
         tokens = [token.strip() for token in move_notation_list.split(",") if token.strip()]
         for index, token in enumerate(tokens):
+            #print(token);
             player = FIRST_PLAYER if index % 2 == 0 else SECOND_PLAYER
             move = XiangqiBoardUtils.parse_move_notation(token, player, board)
             moves.append(move)
             board.apply_move(move)
+            #print(XiangqiBoardUtils.fen_to_ascii_board(XiangqiBoardUtils.expand_fen_empty_squares(board.FEN)))
+            #for p in board.visible_pieces:
+            #    print(p.code, p.pos)
         return moves
 
     @staticmethod
