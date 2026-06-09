@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 MongoDoc = dict[str, Any]
 MOVE_PATTERN = re.compile(r"[A-Z].?\d?.\d")
 MOVE_FULL_PATTERN = re.compile(r"^[A-Z].?\d?.\d$")
+PROGRESS_EVERY = 100
 
 RESULT_MAP = {
     "WIN": "win",
@@ -86,7 +87,14 @@ def normalize_game(args) -> None:
     move_list_unchanged = 0
     move_list_fixed = 0
 
-    cursor = db.games.find({})
+    filter_ = {"normalized": {"$ne": True}}
+    total = db.games.count_documents(filter_)
+    if args.count is not None:
+        total = min(total, args.count)
+
+    cursor = db.games.find(filter_)
+    if args.count is not None:
+        cursor = cursor.limit(args.count)
     for record in cursor:
         scanned += 1
         update_fields: MongoDoc = {}
@@ -122,10 +130,20 @@ def normalize_game(args) -> None:
             invalid_record = public_json_record(record)
             invalid_record["normalize_errors"] = invalid_reasons
             invalid_records.append(invalid_record)
+        else:
+            update_fields["normalized"] = True
 
         if update_fields:
             update_fields["updated_date"] = datetime.now(timezone.utc)
             db.games.update_one({"_id": record["_id"]}, {"$set": update_fields})
+
+        log_progress(
+            scanned,
+            total,
+            result_fixed,
+            move_list_fixed,
+            len(invalid_records),
+        )
 
     if invalid_records:
         with open(args.invalid_result_file, "w", encoding="utf-8") as file:
@@ -140,6 +158,28 @@ def normalize_game(args) -> None:
         move_list_fixed,
         len(invalid_records),
         args.invalid_result_file if invalid_records else None,
+    )
+
+
+def log_progress(
+    processed: int,
+    total: int,
+    result_fixed: int,
+    move_list_fixed: int,
+    invalid: int,
+) -> None:
+    if processed != total and processed % PROGRESS_EVERY != 0:
+        return
+
+    percent = (processed / total * 100) if total else 100
+    logging.info(
+        "Normalizing games: %s/%s processed (%.1f%%), result_fixed=%s, move_list_fixed=%s, invalid=%s",
+        processed,
+        total,
+        percent,
+        result_fixed,
+        move_list_fixed,
+        invalid,
     )
 
 
@@ -169,11 +209,13 @@ def normalize_move_list(
 
     normalized_moves = [move.replace(".", "+").replace("C", "B") for move in moves]
     try:
+        resolved_start_position = start_position or DEFAULT_POSITION
         parsed_moves = XiangqiBoardUtils.parse_move_notation_list(
             ",".join(normalized_moves),
+            resolved_start_position,
         )
         board = XiangqiBoard()
-        board.FEN = DEFAULT_POSITION
+        board.FEN = resolved_start_position
         normalized_notation = []
         for move in parsed_moves:
             notation = XiangqiBoardUtils.get_move_notation(move, board)
@@ -226,6 +268,12 @@ def main() -> None:
         "--invalid-result-file",
         default="invalid-game-results.json",
         help="JSON file where game records with unresolved result values are written",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help="Maximum number of unnormalized game records to fetch and process",
     )
 
     args = parser.parse_args()
