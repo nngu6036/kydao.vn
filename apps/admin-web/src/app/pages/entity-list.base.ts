@@ -70,8 +70,19 @@ export const ENTITY_LIST_TEMPLATE = `
         [routerLink]="['/', vm.config.kind, item['id'], 'edit']"
         [style.grid-template-columns]="gridTemplateColumns"
       >
-        <span *ngFor="let column of columns">{{ display(item[column.key]) }}</span>
-        <span class="row-action">Sửa</span>
+        <span *ngFor="let column of columns">{{ displayColumn(item, column) }}</span>
+        <span class="row-actions">
+          <a
+            class="row-action"
+            [routerLink]="['/', vm.config.kind, item['id'], 'edit']"
+            (click)="$event.stopPropagation()"
+          >
+            Sửa
+          </a>
+          <button class="row-action row-action-danger" type="button" (click)="deleteItem(item); $event.stopPropagation()">
+            Xóa
+          </button>
+        </span>
       </div>
     </div>
 
@@ -97,6 +108,7 @@ export const ENTITY_LIST_TEMPLATE = `
 export abstract class EntityListBasePage {
   private readonly pageSubject = new BehaviorSubject(1);
   private readonly sortSubject = new BehaviorSubject<SortState>({ direction: 'asc' });
+  private readonly refreshSubject = new BehaviorSubject(0);
   private readonly pageSize = 25;
 
   readonly config: EntityConfig;
@@ -111,7 +123,7 @@ export abstract class EntityListBasePage {
     tap(() => this.pageSubject.next(1))
   );
 
-  readonly vm$ = combineLatest([this.query$, this.pageSubject, this.sortSubject]).pipe(
+  readonly vm$ = combineLatest([this.query$, this.pageSubject, this.sortSubject, this.refreshSubject]).pipe(
     switchMap(([query, page, sort]) =>
       this.api.list(this.config.kind, query, page, this.pageSize, sort.column, sort.direction).pipe(
         map((response) => ({ config: this.config, page: this.normalizePage(response, page), sort })),
@@ -155,6 +167,23 @@ export abstract class EntityListBasePage {
     }
   }
 
+  deleteItem(item: Record<string, unknown>): void {
+    const id = item['id'];
+    if (typeof id !== 'string' || !id) {
+      return;
+    }
+
+    const name = this.display(item['name'] ?? item['red_name'] ?? item['tournament_name'] ?? id);
+    if (!window.confirm(`Xóa ${this.config.singular} "${name}"?`)) {
+      return;
+    }
+
+    this.api.delete(this.config.kind, id).subscribe({
+      next: () => this.refreshSubject.next(this.refreshSubject.value + 1),
+      error: () => window.alert('Không thể xóa bản ghi.'),
+    });
+  }
+
   display(value: unknown): string {
     if (value === null || value === undefined || value === '') {
       return '-';
@@ -165,8 +194,28 @@ export abstract class EntityListBasePage {
     return String(value);
   }
 
+  displayColumn(item: Record<string, unknown>, column: ListColumn): string {
+    const value = item[column.key];
+    if (column.key === 'result') {
+      return this.displayResult(value);
+    }
+    return this.display(value);
+  }
+
+  private displayResult(value: unknown): string {
+    const resultLabels: Record<string, string> = {
+      win: 'thắng',
+      lose: 'thua',
+      draw: 'hòa',
+    };
+    if (typeof value === 'string' && resultLabels[value]) {
+      return resultLabels[value];
+    }
+    return this.display(value);
+  }
+
   private toGridTemplateColumns(columns: ListColumn[]): string {
-    const actionWidth = '80px';
+    const actionWidth = '140px';
     if (!columns.some((column) => column.widthPercent !== undefined)) {
       return `repeat(${columns.length}, minmax(140px, 1fr)) ${actionWidth}`;
     }

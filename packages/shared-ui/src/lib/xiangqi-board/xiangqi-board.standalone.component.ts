@@ -548,14 +548,15 @@ export class XiangqiBoard implements Iterable<XiangqiPiece> {
     return this.pieces.find((piece) => piece.Id === id);
   }
 
-  getColByCode(code: string) : number {
+  getColByCode(code: string) : number | null  {
     let col = null;
     for (const piece of this.VisiblePieces)
-        if (piece.Code == code)
+      if (piece.Code == code) {
             if (col && col != piece.Col)
                 throw new Error(`Ambiguous col by code ${code}`);
             col = piece.Col;
-      return col
+      }
+    return col
   }
     
   get VisiblePieces(): XiangqiPiece[] {
@@ -830,11 +831,6 @@ export class XiangqBoardUtils {
     for (let index = 0; index < tokens.length; index++) {
       const player = index % 2 === 0 ? FIRST_PLAYER : SECOND_PLAYER;
       const move = this.parseMoveNotation(tokens[index], player, board);
-      if (!move) {
-        throw new Error(
-          `Invalid move notation: ${tokens[index]} at index ${index}`,
-        );
-      }
       moves.push(move);
       board.applyMove(move);
     }
@@ -847,14 +843,14 @@ export class XiangqBoardUtils {
     player: string,
     board: XiangqiBoard,
   ): XiangqiMove {
-    const normalized = notation.replace(/\s+/g, "").toUpperCase();
+    const normalized = notation.replace(/\s+/g, "");
     const match = normalized.match(/^([BPXMVST])([sgt])?(\d?)([/+-])(\d)$/);
     if (!match) {
-      throw new Error(`Invalid move notation: ${notation}`);
+      throw new Error(`Invalid move notation: ${notation} : not matching regular expression`);
     }
     let [, pieceCode, srcModifier, srcCol, operator, dstModifier] = match;
     if (!srcModifier && !srcCol) {
-      throw new Error(`Invalid move notation: ${notation}`);
+      throw new Error(`Invalid move notation: ${notation} modifier and srcCol are both null`);
     }
     if (!srcCol) 
       srcCol = `${board.getColByCode(`${player}${pieceCode}`)}`;

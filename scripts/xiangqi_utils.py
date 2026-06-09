@@ -557,7 +557,7 @@ class XiangqiBoardUtils:
         moves: List[XiangqiMove] = []
         tokens = [token.strip() for token in move_notation_list.split(",") if token.strip()]
         for index, token in enumerate(tokens):
-            #print(token);
+            print(token);
             player = FIRST_PLAYER if index % 2 == 0 else SECOND_PLAYER
             move = XiangqiBoardUtils.parse_move_notation(token, player, board)
             moves.append(move)

@@ -166,4 +166,8 @@ export class AdminContentService {
   update(kind: EntityKind, id: string, payload: Record<string, unknown>): Observable<Record<string, unknown>> {
     return this.http.put<Record<string, unknown>>(`${this.baseUrl}/admin/${kind}/${id}`, payload);
   }
+
+  delete(kind: EntityKind, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/admin/${kind}/${id}`);
+  }
 }

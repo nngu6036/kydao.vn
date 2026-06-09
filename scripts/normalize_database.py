@@ -23,6 +23,7 @@ MongoDoc = dict[str, Any]
 MOVE_PATTERN = re.compile(r"[A-Z].?\d?.\d")
 MOVE_FULL_PATTERN = re.compile(r"^[A-Z].?\d?.\d$")
 PROGRESS_EVERY = 100
+DELETE_RECORD = "__DELETE_RECORD__"
 
 RESULT_MAP = {
     "WIN": "win",
@@ -86,6 +87,7 @@ def normalize_game(args) -> None:
     result_fixed = 0
     move_list_unchanged = 0
     move_list_fixed = 0
+    deleted = 0
 
     filter_ = {"normalized": {"$ne": True}}
     unnormalized_total = db.games.count_documents(filter_)
@@ -122,6 +124,18 @@ def normalize_game(args) -> None:
         key = clean_string(record.get("key"))
         if isinstance(move_list, str):
             normalized_move_list, invalid_moves = normalize_move_list(move_list, key)
+            if normalized_move_list == DELETE_RECORD:
+                db.games.delete_one({"_id": record["_id"]})
+                deleted += 1
+                log_progress(
+                    scanned,
+                    total,
+                    result_fixed,
+                    move_list_fixed,
+                    len(invalid_records),
+                    deleted,
+                )
+                continue
             if invalid_moves:
                 invalid_reasons.append(f"invalid moves: {', '.join(invalid_moves)}")
             elif normalized_move_list is None:
@@ -149,6 +163,7 @@ def normalize_game(args) -> None:
             result_fixed,
             move_list_fixed,
             len(invalid_records),
+            deleted,
         )
 
     if invalid_records:
@@ -156,13 +171,14 @@ def normalize_game(args) -> None:
             json.dump(invalid_records, file, ensure_ascii=False, indent=2)
 
     logging.info(
-        "Finished game normalization: scanned=%s result_unchanged=%s result_fixed=%s move_list_unchanged=%s move_list_fixed=%s invalid=%s invalid_file=%s",
+        "Finished game normalization: scanned=%s result_unchanged=%s result_fixed=%s move_list_unchanged=%s move_list_fixed=%s invalid=%s deleted=%s invalid_file=%s",
         scanned,
         result_unchanged,
         result_fixed,
         move_list_unchanged,
         move_list_fixed,
         len(invalid_records),
+        deleted,
         args.invalid_result_file if invalid_records else None,
     )
 
@@ -173,19 +189,21 @@ def log_progress(
     result_fixed: int,
     move_list_fixed: int,
     invalid: int,
+    deleted: int,
 ) -> None:
     if processed != total and processed % PROGRESS_EVERY != 0:
         return
 
     percent = (processed / total * 100) if total else 100
     logging.info(
-        "Normalizing games: %s/%s processed (%.1f%%), result_fixed=%s, move_list_fixed=%s, invalid=%s",
+        "Normalizing games: %s/%s processed (%.1f%%), result_fixed=%s, move_list_fixed=%s, invalid=%s, deleted=%s",
         processed,
         total,
         percent,
         result_fixed,
         move_list_fixed,
         invalid,
+        deleted,
     )
 
 
@@ -207,13 +225,16 @@ def normalize_move_list(
 
     moves = [match.group(0) for match in MOVE_PATTERN.finditer(move_list)]
     if not moves or "".join(moves) != move_list:
-        return None, [move_list]
+        return (DELETE_RECORD if not moves else None), ([] if not moves else [move_list])
 
     invalid_moves = [move for move in moves if not MOVE_FULL_PATTERN.fullmatch(move)]
     if invalid_moves:
         return None, invalid_moves
 
     normalized_moves = [move.replace(".", "+").replace("C", "B") for move in moves]
+    if len(normalized_moves) <= 1:
+        return DELETE_RECORD, []
+
     try:
         resolved_start_position = start_position or DEFAULT_POSITION
         parsed_moves = XiangqiBoardUtils.parse_move_notation_list(

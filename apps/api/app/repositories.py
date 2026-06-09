@@ -127,6 +127,10 @@ class MongoRepository:
         document = await self._find_one_and_update(self.collection, id, payload)
         return _public_doc(document) if document else None
 
+    async def delete(self, id: str) -> bool:
+        result = await self.collection.delete_one(_object_id_filter(id))
+        return result.deleted_count > 0
+
     def _write_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
         return {key: value for key, value in payload.items() if key not in {"id", "_id"}}
 
@@ -324,6 +328,14 @@ class TournamentRepository(MongoRepository):
             {"$or": [{"tournament_id": {"$in": id_values}}, {"event_id": {"$in": id_values}}]},
             {"$set": {"tournament_name": name, "updated_date": _utc_now()}},
         )
+
+    async def delete(self, id: str) -> bool:
+        result = await self.collection.delete_one(_object_id_filter(id))
+        if result.deleted_count > 0:
+            return True
+
+        fallback_result = await self.fallback_collection.delete_one(_object_id_filter(id))
+        return fallback_result.deleted_count > 0
 
 
 class GameRepository(MongoRepository):

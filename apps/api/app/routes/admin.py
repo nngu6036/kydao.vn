@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.db import get_database
@@ -92,6 +92,14 @@ async def update_player(player_id: str, payload: dict, db: AsyncIOMotorDatabase 
     return player
 
 
+@router.delete("/players/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_player(player_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    deleted = await PlayerRepository(db).delete(player_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Player not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/games", response_model=Page)
 async def games(
     query: str = "",
@@ -139,6 +147,14 @@ async def update_game(game_id: str, payload: dict, db: AsyncIOMotorDatabase = De
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     return game
+
+
+@router.delete("/games/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_game(game_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    deleted = await GameRepository(db).delete(game_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/tournaments", response_model=Page)
@@ -191,3 +207,11 @@ async def update_tournament(tournament_id: str, payload: dict, db: AsyncIOMotorD
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
     return tournament
+
+
+@router.delete("/tournaments/{tournament_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_tournament(tournament_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    deleted = await TournamentRepository(db).delete(tournament_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -520,8 +520,22 @@ h2 {
 }
 
 .data-row .row-action {
+  border: 0;
+  background: transparent;
   color: var(--accent);
+  cursor: pointer;
   font-weight: 800;
+  padding: 0;
+}
+
+.data-row .row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.data-row .row-action-danger {
+  color: #b42318;
 }
 
 .data-row-head {
