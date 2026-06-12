@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   selector: 'app-game-block',
@@ -37,6 +37,6 @@ import { MockContentService } from '../core/mock-content.service';
   `
 })
 export class GameBlockComponent {
-  private readonly mockContent = inject(MockContentService);
-  readonly games$ = this.mockContent.games$.pipe(map(items => items.slice(0, 3)));
+  private readonly content = inject(ContentService);
+  readonly games$ = this.content.games$.pipe(map(items => items.slice(0, 3)));
 }

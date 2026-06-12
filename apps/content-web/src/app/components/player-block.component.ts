@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { AsyncPipe, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   selector: 'app-player-block',
@@ -34,8 +34,8 @@ import { MockContentService } from '../core/mock-content.service';
   `
 })
 export class PlayerBlockComponent {
-  private readonly mockContent = inject(MockContentService);
-  readonly players$ = this.mockContent.players$.pipe(map(items => items.slice(0, 4)));
+  private readonly content = inject(ContentService);
+  readonly players$ = this.content.players$.pipe(map(items => items.slice(0, 4)));
 
   initials(name: string): string {
     return name.split(' ').map(part => part[0]).slice(0, 2).join('').toUpperCase();

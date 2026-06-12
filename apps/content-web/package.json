@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "start": "ng serve --port 4200",
-    "build": "ng build"
+    "start:dev": "ng serve --configuration dev --port 4200",
+    "start:prod": "ng serve --configuration prod --port 4200",
+    "build": "ng build",
+    "build:dev": "ng build --configuration dev",
+    "build:prod": "ng build --configuration prod"
   },
   "dependencies": {
     "@angular/animations": "^17.3.0",

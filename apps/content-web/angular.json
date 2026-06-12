@@ -27,9 +27,14 @@
             "assets": [
               "src/assets",
               {
+                "glob": ".htaccess",
+                "input": "src",
+                "output": "."
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/shared-ui/src/assets/chess",
-                "output": "/assets/theme/images/chess"
+                "output": "assets/theme/images/chess"
               }
             ],
             "styles": [
@@ -44,17 +49,47 @@
               "src/styles.css"
             ],
             "scripts": []
-          }
+          },
+          "configurations": {
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
+            },
+            "prod": {
+              "baseHref": "/vandau/",
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "dev"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "app:build",
+            "buildTarget": "app:build:dev",
             "host": "0.0.0.0",
             "allowedHosts": [
               "ec2-3-27-156-182.ap-southeast-2.compute.amazonaws.com"
             ]
-          }
+          },
+          "configurations": {
+            "dev": {
+              "buildTarget": "app:build:dev"
+            },
+            "prod": {
+              "buildTarget": "app:build:prod"
+            }
+          },
+          "defaultConfiguration": "dev"
         }
       }
     }

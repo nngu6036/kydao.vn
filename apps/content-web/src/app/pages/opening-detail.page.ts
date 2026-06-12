@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
 import { FooterComponent } from '../components/footer.component';
 import { HeaderComponent } from '../components/header.component';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   template: `
@@ -79,11 +79,11 @@ import { MockContentService } from '../core/mock-content.service';
 export class OpeningDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
-  readonly opening$ = this.mockContent.getOpeningById(this.route.snapshot.paramMap.get('id'));
+  readonly opening$ = this.content.getOpeningById(this.route.snapshot.paramMap.get('id'));
   readonly games$ = this.opening$.pipe(
-    switchMap(opening => this.mockContent.getGamesByOpening(opening?.name ?? null)),
+    switchMap(opening => this.content.getGamesByOpening(opening?.name ?? null)),
     map(items => [...items].sort((a, b) => this.parseDisplayDate(a.date) - this.parseDisplayDate(b.date)))
   );
 

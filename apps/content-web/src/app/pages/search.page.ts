@@ -5,7 +5,7 @@ import { combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FooterComponent } from '../components/footer.component';
 import { HeaderComponent } from '../components/header.component';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 import type { GameItem } from '../models/content.models';
 
 @Component({
@@ -72,7 +72,7 @@ import type { GameItem } from '../models/content.models';
 export class SearchPage {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
   readonly searchState$ = this.route.queryParamMap.pipe(
     map(params => ({
@@ -83,7 +83,7 @@ export class SearchPage {
     }))
   );
 
-  readonly results$ = combineLatest([this.mockContent.games$, this.searchState$]).pipe(
+  readonly results$ = combineLatest([this.content.games$, this.searchState$]).pipe(
     map(([games, state]) => games.filter(game => this.matchesGame(game, state)))
   );
 

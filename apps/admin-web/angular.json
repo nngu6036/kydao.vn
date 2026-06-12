@@ -26,6 +26,11 @@
             "assets": [
               "src/assets",
               {
+                "glob": ".htaccess",
+                "input": "src",
+                "output": "."
+              },
+              {
                 "glob": "**/*",
                 "input": "../../packages/shared-ui/src/assets/chess",
                 "output": "assets/theme/images/chess"
@@ -47,6 +52,7 @@
             },
             "prod": {
               "baseHref": "/quantri/",
+              "outputHashing": "all",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

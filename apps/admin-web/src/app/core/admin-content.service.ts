@@ -45,10 +45,19 @@ export const ENTITY_CONFIGS: Record<EntityKind, EntityConfig> = {
     label: 'Giải đấu',
     singular: 'Giải đấu',
     description: 'Hồ sơ các giải đấu được nhập từ sự kiện Kỳ Đạo.',
-    columns: ['name', 'status', 'date', 'location', 'participants'],
+    columns: ['name', 'status', 'date', 'country', 'location', 'participants'],
     fields: [
       { key: 'name', label: 'Tên' },
       { key: 'date', label: 'Ngày', type: 'date' },
+      {
+        key: 'country',
+        label: 'Quốc gia',
+        type: 'select',
+        options: [
+          { value: 'vn', label: 'Việt Nam' },
+          { value: 'non-vn', label: 'ngoài Việt Nam' },
+        ],
+      },
       { key: 'location', label: 'Địa điểm' },
       { key: 'participants', label: 'Số kỳ thủ', type: 'number' },
     ],

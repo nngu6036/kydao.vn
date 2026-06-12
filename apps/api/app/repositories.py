@@ -243,7 +243,7 @@ class PlayerRepository(MongoRepository):
 
 class TournamentRepository(MongoRepository):
     collection_name = "tournaments"
-    search_fields = ("name", "status", "location")
+    search_fields = ("name", "status", "country", "location")
     default_sort = ("created_date", -1)
 
     @property

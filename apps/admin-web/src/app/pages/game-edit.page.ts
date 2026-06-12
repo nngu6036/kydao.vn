@@ -110,6 +110,8 @@ const GAME_EDIT_TEMPLATE = `
             <xiangqi-board
               #xiangqiBoard
               class="game-board"
+              [attr.data-board-id]="boardComponentId"
+              [componentId]="boardComponentId"
               [position]="boardPosition()"
               (pieceMove)="movePiece($event)"
             ></xiangqi-board>
@@ -184,6 +186,7 @@ const GAME_EDIT_TEMPLATE = `
 export class GameEditPage extends EntityEditBasePage {
   @ViewChild('xiangqiBoard') private xiangqiBoard?: XiangqiBoardComponent;
 
+  readonly boardComponentId = `game-edit-board-${Math.random().toString(36).slice(2)}`;
   selectedMoveIndex = -1;
   readonly moveTokens$: Observable<string[]>;
 
@@ -206,14 +209,12 @@ export class GameEditPage extends EntityEditBasePage {
   }
 
   boardPosition(): string {
-    const value = this.form.controls['begin_fen']?.value;
-    return typeof value === 'string' && value.trim() ? value.trim() : 'start';
+    return 'start';
   }
 
-  private boardMoves():XiangqiMove[] {
-    const fen = this.form.controls['begin_fen']?.value;
+  private boardMoves(): XiangqiMove[] {
     const move_list = this.form.controls['move_list']?.value;
-    return XiangqBoardUtils.parseMoveNotationList(move_list, fen);
+    return XiangqBoardUtils.parseMoveNotationList(move_list);
   }
 
 
@@ -288,9 +289,10 @@ export class GameEditPage extends EntityEditBasePage {
     if (!this.canRemoveMove()) {
       return;
     }
-    const raw = this.form.controls['move_list']?.value.trim() ?? '';
+    const value = this.form.controls['move_list']?.value;
+    const raw = typeof value === 'string' ? value.trim() : '';
     const moveTokens = this.toMoveTokens(raw);
-    moveTokens.splice(this.selectedMoveIndex)
+    moveTokens.splice(this.selectedMoveIndex, 1);
     this.form.controls['move_list']?.setValue(moveTokens.join(', '));
 
     const nextSelectedIndex = Math.min(this.selectedMoveIndex, moveTokens.length - 1);
@@ -303,12 +305,13 @@ export class GameEditPage extends EntityEditBasePage {
     return `${paddedLabel} ${move}`;
   }
 
-  movePiece(event:XiangqiMove): void {
-    if (this.selectedMoveIndex ==-1) {
-      this.form.controls['move_list']?.setValue('')
-    };
-    const raw = this.form.controls['move_list']?.value.trim() ?? '';
-    const  moveList = raw.split(',').map((m:string) => m.trim()).filter(Boolean);
+  movePiece(event: XiangqiMove): void {
+    if (this.selectedMoveIndex === -1) {
+      this.form.controls['move_list']?.setValue('');
+    }
+    const value = this.form.controls['move_list']?.value;
+    const raw = typeof value === 'string' ? value.trim() : '';
+    const moveList = raw.split(',').map((m: string) => m.trim()).filter(Boolean);
     moveList.push(event.Notation);
     this.form.controls['move_list']?.setValue(moveList.join(', '));
     this.selectMove(moveList.length - 1);
@@ -319,13 +322,13 @@ export class GameEditPage extends EntityEditBasePage {
   }
 
   protected override afterFormDataLoaded(): void {
-     if (this.moveCount() === 0) {
+    if (this.moveCount() === 0) {
       this.selectedMoveIndex = -1;
       return;
     }
 
     setTimeout(() => {
-      this.selectMove(this.moveCount()-1);
+      this.selectMove(this.moveCount() - 1);
     });
   }
 

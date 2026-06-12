@@ -199,6 +199,20 @@ export abstract class EntityListBasePage {
     if (column.key === 'result') {
       return this.displayResult(value);
     }
+    if (column.key === 'country' || column.key === 'nationality') {
+      return this.displayCountry(value);
+    }
+    return this.display(value);
+  }
+
+  private displayCountry(value: unknown): string {
+    const countryLabels: Record<string, string> = {
+      vn: 'Việt Nam',
+      'non-vn': 'ngoài Việt Nam',
+    };
+    if (typeof value === 'string' && countryLabels[value]) {
+      return countryLabels[value];
+    }
     return this.display(value);
   }
 

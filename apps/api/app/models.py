@@ -43,6 +43,7 @@ class Tournament(BaseModel):
     url: str | None = None
     status: str | None = None
     date: str | None = None
+    country: str | None = None
     location: str | None = None
     participants: int | None = None
 

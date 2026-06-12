@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { AsyncPipe, NgClass, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   selector: 'app-ranking-block',
@@ -31,6 +31,6 @@ import { MockContentService } from '../core/mock-content.service';
   `
 })
 export class RankingBlockComponent {
-  private readonly mockContent = inject(MockContentService);
-  readonly rankings$ = this.mockContent.rankings$.pipe(map(items => items.slice(0, 7)));
+  private readonly content = inject(ContentService);
+  readonly rankings$ = this.content.rankings$.pipe(map(items => items.slice(0, 7)));
 }

@@ -2,22 +2,17 @@ import {
   AfterViewInit,
   Component,
   DoCheck,
-  ElementRef,
   EventEmitter,
-  HostListener,
   Input,
   NgModule,
   OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  QueryList,
   SimpleChanges,
-  ViewChild,
-  ViewChildren,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { Observable, Subject, Subscription } from "rxjs";
+import { Observable, Subject } from "rxjs";
 
 /*
  * Self-contained Xiangqi board extracted from the original project.
@@ -818,13 +813,21 @@ export class XiangqBoardUtils {
   }
 
   static parseMoveNotationList(
-    moveNotationList: string,
-    startPosition: string = DEFAULT_POSITION,
+    moveNotationList: unknown,
+    startPosition: unknown = DEFAULT_POSITION,
   ): XiangqiMove[] {
     const board = new XiangqiBoard();
-    board.FEN = startPosition;
+    board.FEN =
+      typeof startPosition === "string" && startPosition.trim()
+        ? startPosition.trim()
+        : DEFAULT_POSITION;
     const moves: XiangqiMove[] = [];
-    const tokens = moveNotationList
+    const normalizedMoveList = Array.isArray(moveNotationList)
+      ? moveNotationList.join(",")
+      : typeof moveNotationList === "string"
+        ? moveNotationList
+        : "";
+    const tokens = normalizedMoveList
       .split(",")
       .map((token) => token.trim())
       .filter(Boolean);
@@ -955,8 +958,6 @@ export class XiangqBoardUtils {
     } else {
       throw new Error(`Unknown operator: ${operator}`);
     }
-    if (move ==null)
-      console.log(piece,operator, dstModifier, board.VisiblePieces)
     return move;
   }
 }
@@ -1049,6 +1050,20 @@ export class XiangqiPieceComponent implements DoCheck {
   private pieceInfo: XiangqiPiece | null = null;
   private renderedStateKey = "";
 
+  @Input() set renderContext(value: XiangqiBoardGUIContext | null) {
+    if (!value) return;
+    this.context = value;
+    this.updatePosition();
+  }
+
+  @Input() set pieceData(value: XiangqiPiece | null) {
+    this.piece = value;
+  }
+
+  @Input() set selectedPiece(value: boolean) {
+    this.selected = value;
+  }
+
   get piece(): XiangqiPiece | null {
     return this.pieceInfo;
   }
@@ -1115,27 +1130,14 @@ export class XiangqiPieceComponent implements DoCheck {
 
 @Component({
   selector: "xiangqi-board",
-  template: `
-    <div class="xiangqiboard">
-      <div class="board" #boardContainer>
-        <img
-          src="assets/theme/images/chess/board.png"
-          (mousedown)="clickBoard($event)"
-          (load)="boardReady()"
-          #boardDOM
-          alt="Xiangqi board"
-        />
-
-        <xiangqi-piece
-          *ngFor="let piece of Board"
-          [componentId]="piece.Id"
-          (click)="selectPiece(piece.Id); $event.stopPropagation()"
-        ></xiangqi-piece>
-      </div>
-    </div>
-  `,
+  template: ``,
   styles: [
     `
+      :host {
+        display: block;
+        width: 100%;
+      }
+
       .xiangqiboard {
         width: 100%;
         padding: 0;
@@ -1151,32 +1153,44 @@ export class XiangqiPieceComponent implements DoCheck {
         width: 100%;
         display: block;
       }
+
+      .xiangqi-piece {
+        position: absolute;
+      }
+
+      .border {
+        border-style: solid;
+        border-width: 1px;
+        border-color: yellow;
+      }
     `,
   ],
 })
 export class XiangqiBoardComponent
   implements AfterViewInit, OnChanges, OnDestroy, XiangqiBoardGUIContext, OnInit
 {
+  @Input() componentId = XiangqBoardUtils.uuid();
   @Input() position: string = DEFAULT_POSITION;
   @Input() orientation: string = FIRST_PLAYER;
   @Input() viewOnly = false;
 
-  @ViewChild("boardDOM") boardDOM!: ElementRef<HTMLImageElement>;
-  @ViewChild("boardContainer") boardContainer!: ElementRef<HTMLElement>;
-  @ViewChildren(XiangqiPieceComponent)
-  pieceComponentList!: QueryList<XiangqiPieceComponent>;
-
   scaleX = 1;
   scaleY = 1;
   initialized = false;
+  selectedPieceId: string | null = null;
   readonly pieceSelected: Observable<string>;
   readonly pieceDeselected: Observable<string>;
   readonly boardClicked: Observable<string>;
   @Output() readonly pieceMove = new EventEmitter<unknown>();
   private board = new XiangqiBoard();
 
-  private selectedPieceComponent: XiangqiPieceComponent | null = null;
-  private pieceListSub?: Subscription;
+  private hostElement?: HTMLElement;
+  private boardRoot?: HTMLDivElement;
+  private boardLayer?: HTMLDivElement;
+  private boardImage?: HTMLImageElement;
+  private boardContainer?: HTMLElement;
+  private pieceImages: HTMLImageElement[] = [];
+  private readonly resizeListener = () => this.onWindowResize();
   private lastPlayer:string = '';
   private mode: "edit" | "play" = "edit";
   private pieceSelectedReceiver = new Subject<string>();
@@ -1195,17 +1209,25 @@ export class XiangqiBoardComponent
   }
 
   ngAfterViewInit(): void {
-    this.pieceListSub = this.pieceComponentList.changes.subscribe(() => {
-    });
+    this.createBoardDom();
+    window.addEventListener("resize", this.resizeListener);
   }
 
-  boardReady () {
+  boardReady (event?: Event) {
+    this.boardImage = (event?.target as HTMLImageElement | null) ?? this.boardImage;
+    this.boardContainer = this.boardImage?.parentElement ?? this.boardContainer;
     this.initialized = true;
     this.updateScale();
     this.drawBoard();
   }
 
-  @HostListener("window:resize")
+  boardImageFailed(event: Event): void {
+    this.boardImage = (event.target as HTMLImageElement | null) ?? undefined;
+    this.boardContainer = this.boardImage?.parentElement ?? undefined;
+    this.initialized = true;
+    this.drawBoard();
+  }
+
   onWindowResize(): void {
     if (!this.initialized) return;
     this.updateScale();
@@ -1213,20 +1235,49 @@ export class XiangqiBoardComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (!changes["position"]) return;
 
+    this.setUpBoard(this.position || DEFAULT_POSITION);
+    this.lastPlayer = "";
+    this.unselectPiece();
+    if (this.initialized) {
+      this.drawBoard();
+    }
   }
 
   ngOnDestroy(): void {
-    this.pieceListSub?.unsubscribe();
+    window.removeEventListener("resize", this.resizeListener);
+    this.hostElement?.replaceChildren();
   }
 
   get Board(): XiangqiBoard {
     return this.board;
   }
 
+  get visiblePieces(): XiangqiPiece[] {
+    return this.board.VisiblePieces;
+  }
+
+  get pieceWidth(): number {
+    return Math.floor(SQUARE_WIDTH * this.scaleX);
+  }
+
+  get pieceHeight(): number {
+    return Math.floor(SQUARE_HEIGHT * this.scaleY);
+  }
+
+  pieceTop(piece: XiangqiPiece): number {
+    return XiangqiBoardGuiUtils.posToCoordinate(this, piece.Pos).top;
+  }
+
+  pieceLeft(piece: XiangqiPiece): number {
+    return XiangqiBoardGuiUtils.posToCoordinate(this, piece.Pos).left;
+  }
+
   reset() {
     this.board.reset();
     this.lastPlayer = '';
+    this.renderPieces();
   }
 
   clickBoard(event: MouseEvent & { offsetX: number; offsetY: number }): void {
@@ -1243,23 +1294,22 @@ export class XiangqiBoardComponent
   selectPiece(pieceId: string): void {
     if (this.viewOnly) return;
 
-    const pieceComponent = this.getPieceComponentById(pieceId);
-    if (!pieceComponent) return;
+    const piece = this.board.getPieceById(pieceId);
+    if (!piece) return;
 
-    if (
-      this.selectedPieceComponent &&
-      this.selectedPieceComponent.piece?.Id === pieceId
-    ) {
+    if (this.selectedPieceId === pieceId) {
       this.unselectPiece();
       return;
     }
     if (
-      this.selectedPieceComponent &&
-      this.selectedPieceComponent.piece?.Player !== pieceComponent.piece?.Player
+      this.selectedPieceId &&
+      this.board.getPieceById(this.selectedPieceId)?.Player !== piece.Player
     ) {
+      const selectedPiece = this.board.getPieceById(this.selectedPieceId);
+      if (!selectedPiece) return;
       const move = this.board.createMove(
-        this.selectedPieceComponent?.piece?.Pos || "",
-        pieceComponent.piece?.Pos || "",
+        selectedPiece.Pos || "",
+        piece.Pos || "",
       );
       if (!move) return;
       if (!this.canTakeMove(move)) return;
@@ -1268,22 +1318,21 @@ export class XiangqiBoardComponent
       this.unselectPiece();
     } else {
       if (!this.canMovePiece(pieceId)) return;
-      if (this.selectedPieceComponent) this.selectedPieceComponent.unselect();
-      this.selectedPieceComponent = pieceComponent;
-      this.pieceSelectedReceiver.next(this.selectedPieceComponent.componentId);
-      this.selectedPieceComponent.select();
+      this.selectedPieceId = pieceId;
+      this.pieceSelectedReceiver.next(pieceId);
+      this.renderPieces();
     }
   }
 
   private updateScale(): void {
-    const boardImage = this.boardDOM?.nativeElement;
+    const boardImage = this.boardImage;
     if (!boardImage) return;
 
     const rect = boardImage.getBoundingClientRect();
     const width =
       rect.width ||
       boardImage.offsetWidth ||
-      this.boardContainer?.nativeElement.clientWidth ||
+      this.boardContainer?.clientWidth ||
       0;
     let height = rect.height || boardImage.offsetHeight || 0;
 
@@ -1298,19 +1347,97 @@ export class XiangqiBoardComponent
   }
 
   drawBoard(): void {
-    const pieceComponents = this.pieceComponentList.toArray();
+    this.renderPieces();
+  }
 
-    for (const pieceComponent of pieceComponents) {
-      for (const pieceInfo of this.Board) {
-        if (pieceInfo.Id === pieceComponent.componentId) {
-          pieceComponent.render(this, pieceInfo);
-          break;
-        }
-      }
+  private createBoardDom(): void {
+    if (this.boardRoot) return;
+    const hostElement = this.findHostElement();
+    if (!hostElement) {
+      return;
     }
 
-    for (const piece of this.pieceComponentList.toArray()) {
-      piece.draw();
+    const root = document.createElement("div");
+    root.className = "xiangqiboard";
+    root.style.width = "100%";
+    root.style.padding = "0";
+    root.style.margin = "0";
+
+    const board = document.createElement("div");
+    board.className = "board";
+    board.style.width = "100%";
+    board.style.position = "relative";
+
+    const boardImage = document.createElement("img");
+    boardImage.src = "assets/theme/images/chess/board.png";
+    boardImage.alt = "Xiangqi board";
+    boardImage.style.width = "100%";
+    boardImage.style.display = "block";
+    boardImage.addEventListener("mousedown", (event) =>
+      this.clickBoard(event as MouseEvent & { offsetX: number; offsetY: number }),
+    );
+    boardImage.addEventListener("load", (event) => this.boardReady(event));
+    boardImage.addEventListener("error", (event) => this.boardImageFailed(event));
+
+    board.appendChild(boardImage);
+    root.appendChild(board);
+    hostElement.replaceChildren(root);
+
+    this.hostElement = hostElement;
+    this.boardRoot = root;
+    this.boardLayer = board;
+    this.boardImage = boardImage;
+    this.boardContainer = board;
+
+    if (boardImage.complete && boardImage.naturalWidth > 0) {
+      this.boardReady({ target: boardImage } as unknown as Event);
+    } else {
+      this.renderPieces();
+    }
+  }
+
+  private findHostElement(): HTMLElement | undefined {
+    return (
+      document.querySelector<HTMLElement>(
+        `xiangqi-board[data-board-id="${this.componentId}"]`,
+      ) ??
+      document.querySelector<HTMLElement>(
+        `xiangqi-board[ng-reflect-component-id="${this.componentId}"]`,
+      ) ??
+      undefined
+    );
+  }
+
+  private renderPieces(): void {
+    if (!this.boardLayer) return;
+
+    for (const pieceImage of this.pieceImages) {
+      pieceImage.remove();
+    }
+    this.pieceImages = [];
+
+    for (const piece of this.board.VisiblePieces) {
+      const pieceImage = document.createElement("img");
+      const coord = XiangqiBoardGuiUtils.posToCoordinate(this, piece.Pos);
+      pieceImage.className = "xiangqi-piece";
+      pieceImage.src = `assets/theme/images/chess/pieces/${piece.Code}.svg`;
+      pieceImage.alt = "";
+      pieceImage.style.position = "absolute";
+      pieceImage.style.top = `${coord.top}px`;
+      pieceImage.style.left = `${coord.left}px`;
+      pieceImage.style.width = `${this.pieceWidth}px`;
+      pieceImage.style.height = `${this.pieceHeight}px`;
+      if (piece.Id === this.selectedPieceId) {
+        pieceImage.style.borderStyle = "solid";
+        pieceImage.style.borderWidth = "1px";
+        pieceImage.style.borderColor = "yellow";
+      }
+      pieceImage.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.selectPiece(piece.Id);
+      });
+      this.boardLayer.appendChild(pieceImage);
+      this.pieceImages.push(pieceImage);
     }
   }
 
@@ -1318,9 +1445,11 @@ export class XiangqiBoardComponent
   private selectBoardSquare(pos: string): void {
     if (this.viewOnly) return;
 
-    if (this.selectedPieceComponent) {
+    if (this.selectedPieceId) {
+      const selectedPiece = this.board.getPieceById(this.selectedPieceId);
+      if (!selectedPiece) return;
       const move = this.board.createMove(
-        this.selectedPieceComponent?.piece?.Pos || "",
+        selectedPiece.Pos || "",
         pos,
       );
       if (!move) return;
@@ -1329,13 +1458,11 @@ export class XiangqiBoardComponent
       this.pieceMove.emit(move);
       this.unselectPiece();
     } else {
-      const pieceComponent = this.getPieceComponentAtPos(pos);
-      if (pieceComponent) {
-        pieceComponent.select();
-        this.pieceSelectedReceiver.next(
-          pieceComponent.componentId,
-        );
-        this.selectedPieceComponent = pieceComponent;
+      const piece = this.board.getPieceAtPos(pos);
+      if (piece) {
+        this.selectedPieceId = piece.Id;
+        this.pieceSelectedReceiver.next(piece.Id);
+        this.renderPieces();
       }
     }
 
@@ -1343,28 +1470,11 @@ export class XiangqiBoardComponent
   }
 
   private unselectPiece(): void {
-    if (this.selectedPieceComponent) {
-      this.pieceDeselectedReceiver.next(
-        this.selectedPieceComponent.componentId,
-      );
-      this.selectedPieceComponent.unselect();
-      this.selectedPieceComponent = null;
+    if (this.selectedPieceId) {
+      this.pieceDeselectedReceiver.next(this.selectedPieceId);
+      this.selectedPieceId = null;
+      this.renderPieces();
     }
-  }
-
-  private getPieceComponentAtPos(pos: string): XiangqiPieceComponent | null {
-    for (const pieceComponent of this.pieceComponentList.toArray()) {
-      if (pieceComponent.piece?.Pos === pos && !pieceComponent.piece?.Hidden) {
-        return pieceComponent;
-      }
-    }
-    return null;
-  }
-
-  private getPieceComponentById(id: string): XiangqiPieceComponent | undefined {
-    return this.pieceComponentList
-      .toArray()
-      .find((pieceComponent) => pieceComponent.piece?.Id === id);
   }
 
   private setUpBoard(
@@ -1373,6 +1483,7 @@ export class XiangqiBoardComponent
   ): void {
     if (position === DEFAULT_POSITION) position = START_FEN;
     this.board.FEN = position;
+    this.renderPieces();
   }
 
   private canMovePiece(pieceId: string): boolean {
@@ -1394,6 +1505,7 @@ export class XiangqiBoardComponent
     this.board.applyMove(move);
     const piece = this.board.getPieceAtPos(move.To);
     this.lastPlayer = piece?.Player || FIRST_PLAYER;
+    this.renderPieces();
   }
 
   get nextPlayer() {

@@ -11,7 +11,8 @@ import { ENTITY_LIST_TEMPLATE, EntityListBasePage } from './entity-list.base';
 export class TournamentListPage extends EntityListBasePage {
   constructor() {
     super(inject(AdminContentService), 'tournaments', [
-      { key: 'name', label: 'Tên giải đấu', widthPercent: 82 },
+      { key: 'name', label: 'Tên giải đấu', widthPercent: 64 },
+      { key: 'country', label: 'Quốc gia', widthPercent: 18 },
       { key: 'participants', label: 'Số kỳ thủ', widthPercent: 18 },
     ]);
   }

@@ -32,7 +32,7 @@ body {
 .header-with-banner {
   width: 100%;
   height: 160px;
-  background-image: url('/assets/theme/images/hero/banner.png');
+  background-image: url('/vandau/assets/theme/images/hero/banner.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-color: #F5F3F0;
@@ -1282,38 +1282,103 @@ app-ranking-block {
   min-width: 0;
 }
 
+.game-board-column {
+  width: 100%;
+  min-width: 0;
+}
+
+.game-board-preview {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.game-board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) 120px;
+  grid-template-rows: auto auto;
+  gap: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+}
+
+.game-board-stack {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 320px;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+}
+
 .game-board {
   display: block;
-  width: 320px;
+  width: 100%;
   height: 100%;
+  min-height: 0;
   max-width: 100%;
-  flex: 0 0 320px;
   margin: 0;
   padding: 0;
 }
 
 .game-board .xiangqiboard,
-.game-board .board,
-.game-board .board > img {
+.game-board .board {
   height: 100%;
+  min-height: 0;
 }
 
 .game-board .board > img {
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
 }
 
-.game-board-layout {
+.game-board-toolbar {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
-  gap: 0;
-  align-items: stretch;
-  justify-content: flex-start;
-  height: calc(320px * 644 / 560);
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.375rem;
+  margin: 0 0 0.5rem;
 }
 
-.move-list-panel {
+.icon-action {
+  display: inline-grid;
+  place-items: center;
+  width: 2.125rem;
+  height: 2.125rem;
+  border: 1px solid #E8E4DF;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #2C2C2C;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.icon-action:hover:not(:disabled) {
+  border-color: #CDB8A8;
+  background: #F8F1ED;
+  color: #8B3A3A;
+}
+
+.icon-action:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.move-list-pane {
+  grid-column: 2;
+  grid-row: 2;
   min-width: 0;
   width: 120px;
-  height: 100%;
   align-self: stretch;
   border: 1px solid #E8E4DF;
   border-radius: 0 8px 8px 0;
@@ -1326,21 +1391,21 @@ app-ranking-block {
   scrollbar-width: thin;
 }
 
-.move-list-panel::-webkit-scrollbar {
+.move-list-pane::-webkit-scrollbar {
   width: 10px;
 }
 
-.move-list-panel::-webkit-scrollbar-track {
+.move-list-pane::-webkit-scrollbar-track {
   background: #E8E4DF;
   border-radius: 999px;
 }
 
-.move-list-panel::-webkit-scrollbar-thumb {
+.move-list-pane::-webkit-scrollbar-thumb {
   background: #A6A6A6;
   border-radius: 999px;
 }
 
-.move-list-panel::-webkit-scrollbar-thumb:hover {
+.move-list-pane::-webkit-scrollbar-thumb:hover {
   background: #8E8E8E;
 }
 
@@ -1417,19 +1482,19 @@ app-ranking-block {
 
 @media (max-width: 900px) {
   .game-board-layout {
-    display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) 120px;
     height: auto;
   }
 
-  .move-list {
-    grid-template-columns: 1fr;
-    max-height: 280px;
+  .game-board-stack {
+    width: 100%;
+    max-width: 100%;
   }
 
-  .move-list-panel {
-    width: auto;
+  .move-list-pane {
+    width: 120px;
     height: auto;
+    min-height: 0;
   }
 }
 

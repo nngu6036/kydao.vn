@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { AsyncPipe, DecimalPipe, NgFor } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   selector: 'app-opening-block',
@@ -36,6 +36,6 @@ import { MockContentService } from '../core/mock-content.service';
   `
 })
 export class OpeningBlockComponent {
-  private readonly mockContent = inject(MockContentService);
-  readonly openings$ = this.mockContent.openings$.pipe(map(items => items.slice(0, 3)));
+  private readonly content = inject(ContentService);
+  readonly openings$ = this.content.openings$.pipe(map(items => items.slice(0, 3)));
 }

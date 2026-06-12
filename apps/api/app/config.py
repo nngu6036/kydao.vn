@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         default_factory=lambda: [
             "http://localhost:4200",
             "http://localhost:4201",
+            "https://thanglongkydao.com",
         ]
     )
     mongodb_uri: str = "mongodb://localhost:27017"

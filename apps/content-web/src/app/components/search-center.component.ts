@@ -2,7 +2,7 @@ import { AsyncPipe, NgFor } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   selector: 'app-search-center',
@@ -48,16 +48,16 @@ import { MockContentService } from '../core/mock-content.service';
   `
 })
 export class SearchCenterComponent {
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
   query = '';
   playerFilter = '';
   tournamentFilter = '';
   openingFilter = '';
 
-  readonly players$ = this.mockContent.players$;
-  readonly tournaments$ = this.mockContent.tournaments$;
-  readonly openings$ = this.mockContent.openings$;
+  readonly players$ = this.content.players$;
+  readonly tournaments$ = this.content.tournaments$;
+  readonly openings$ = this.content.openings$;
 
   constructor(private router: Router) {}
 

@@ -3,7 +3,7 @@ import { AsyncPipe, Location, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FooterComponent } from '../components/footer.component';
 import { HeaderComponent } from '../components/header.component';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   template: `
@@ -83,11 +83,11 @@ import { MockContentService } from '../core/mock-content.service';
 export class TournamentDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
   private readonly tournamentId = this.route.snapshot.paramMap.get('id');
 
-  readonly tournament$ = this.mockContent.getTournamentById(this.tournamentId);
-  readonly games$ = this.mockContent.getGamesByTournamentId(this.tournamentId);
+  readonly tournament$ = this.content.getTournamentById(this.tournamentId);
+  readonly games$ = this.content.getGamesByTournamentId(this.tournamentId);
 
   goBack(): void {
     this.location.back();

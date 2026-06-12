@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { FooterComponent } from '../components/footer.component';
 import { HeaderComponent } from '../components/header.component';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   template: `
@@ -129,24 +129,24 @@ import { MockContentService } from '../core/mock-content.service';
 export class ListPage {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
   readonly kind = this.route.snapshot.data['kind'] as 'tournaments' | 'players' | 'games' | 'openings' | 'rankings';
   readonly title = this.route.snapshot.data['title'] || 'Danh sách';
 
-  readonly tournaments$ = this.mockContent.tournaments$.pipe(
+  readonly tournaments$ = this.content.tournaments$.pipe(
     map(items => [...items].sort((a, b) => this.parseDisplayDate(b.date) - this.parseDisplayDate(a.date)))
   );
-  readonly players$ = this.mockContent.players$.pipe(
+  readonly players$ = this.content.players$.pipe(
     map(items => [...items].sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })))
   );
-  readonly games$ = this.mockContent.games$.pipe(
+  readonly games$ = this.content.games$.pipe(
     map(items => [...items].sort((a, b) => this.parseDisplayDate(a.date) - this.parseDisplayDate(b.date)))
   );
-  readonly openings$ = this.mockContent.openings$.pipe(
+  readonly openings$ = this.content.openings$.pipe(
     map(items => [...items].sort((a, b) => b.games - a.games))
   );
-  readonly rankings$ = this.mockContent.rankings$;
+  readonly rankings$ = this.content.rankings$;
 
   goBack(): void {
     this.location.back();

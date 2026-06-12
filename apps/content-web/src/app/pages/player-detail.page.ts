@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
 import { HeaderComponent } from '../components/header.component';
 import { FooterComponent } from '../components/footer.component';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   template: `
@@ -70,14 +70,14 @@ import { MockContentService } from '../core/mock-content.service';
 export class PlayerDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
   readonly playerId$ = this.route.paramMap.pipe(map(params => params.get('id')));
   readonly player$ = this.playerId$.pipe(
-    switchMap(playerId => this.mockContent.getPlayerById(playerId))
+    switchMap(playerId => this.content.getPlayerById(playerId))
   );
   readonly games$ = this.playerId$.pipe(
-    switchMap(playerId => this.mockContent.getGamesByPlayerId(playerId))
+    switchMap(playerId => this.content.getGamesByPlayerId(playerId))
   );
 
   initials(name: string): string {

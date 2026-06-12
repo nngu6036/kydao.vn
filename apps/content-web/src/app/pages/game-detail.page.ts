@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { AsyncPipe, Location, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import {
   XiangqBoardUtils,
   type XiangqiMove,
 } from '@chess-elo/shared-ui/xiangqi-board';
-import { MockContentService } from '../core/mock-content.service';
+import { ContentService } from '../core/content.service';
 
 @Component({
   template: `
@@ -51,27 +51,72 @@ import { MockContentService } from '../core/mock-content.service';
                   </div>
                 </div>
 
-                <div class="game-board-layout">
-                  <xiangqi-board
-                    #xiangqiBoard
-                    class="game-board"
-                    position="start"
-                    [moves]="game.boardMoves"
-                    [viewOnly]="false"
-                    (pieceMove)="onPieceMove($event)"
-                  ></xiangqi-board>
+                <div class="game-board-column">
+                  <div class="game-board-preview">
+                    <div class="game-board-layout">
+                      <div class="game-board-toolbar" role="toolbar" aria-label="Board navigation">
+                        <button
+                          class="icon-action"
+                          type="button"
+                          aria-label="First move"
+                          title="First move"
+                          [disabled]="!canGoFirst()"
+                          (click)="goFirst()"
+                        >&#x23EE;</button>
+                        <button
+                          class="icon-action"
+                          type="button"
+                          aria-label="Previous move"
+                          title="Previous move"
+                          [disabled]="!canGoPrevious()"
+                          (click)="goPrevious()"
+                        >&#x25C0;</button>
+                        <button
+                          class="icon-action"
+                          type="button"
+                          aria-label="Next move"
+                          title="Next move"
+                          [disabled]="!canGoNext()"
+                          (click)="goNext()"
+                        >&#x25B6;</button>
+                        <button
+                          class="icon-action"
+                          type="button"
+                          aria-label="Last move"
+                          title="Last move"
+                          [disabled]="!canGoLast()"
+                          (click)="goLast()"
+                        >&#x23ED;</button>
+                      </div>
 
-                  <div class="move-list-panel" *ngIf="game.moveTokens.length">
-                    <select
-                      class="move-list-box"
-                      [value]="selectedMoveIndex"
-                      (change)="selectMove($any($event.target).value, xiangqiBoard)"
-                      size="16"
-                    >
-                      <option *ngFor="let move of game.moveTokens; let idx = index" [value]="idx">
-                        {{ moveOptionLabel(idx, move) }}
-                      </option>
-                    </select>
+                      <div class="game-board-stack">
+                        <xiangqi-board
+                          #xiangqiBoard
+                          class="game-board"
+                          [attr.data-board-id]="boardComponentId"
+                          [componentId]="boardComponentId"
+                          [position]="boardPosition()"
+                          [viewOnly]="true"
+                        ></xiangqi-board>
+                      </div>
+
+                      <div class="move-list-pane" *ngIf="game.moveTokens.length">
+                        <select
+                          class="move-list-box"
+                          [value]="selectedMoveIndex"
+                          (change)="selectMove($any($event.target).value)"
+                          size="16"
+                        >
+                          <option
+                            *ngFor="let move of game.moveTokens; let idx = index"
+                            [value]="idx"
+                            [selected]="idx === selectedMoveIndex"
+                          >
+                            {{ moveOptionLabel(idx, move) }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -84,13 +129,18 @@ import { MockContentService } from '../core/mock-content.service';
   `,
 })
 export class GameDetailPage {
+  @ViewChild('xiangqiBoard') private xiangqiBoard?: XiangqiBoardComponent;
+
+  readonly boardComponentId = `game-view-board-${Math.random().toString(36).slice(2)}`;
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
-  private readonly mockContent = inject(MockContentService);
+  private readonly content = inject(ContentService);
 
   selectedMoveIndex = -1;
+  private currentBoardMoves: XiangqiMove[] = [];
+  private currentMoveTokens: string[] = [];
 
-  readonly game$ = this.mockContent.getGameById(this.route.snapshot.paramMap.get('id')).pipe(
+  readonly game$ = this.content.getGameById(this.route.snapshot.paramMap.get('id')).pipe(
     map((game) => {
       if (!game) {
         return null;
@@ -98,10 +148,13 @@ export class GameDetailPage {
 
       const moveTokens = this.toMoveTokens(game.move_list);
       const boardMoves = this.toBoardMoves(game.move_list);
+      this.currentMoveTokens = moveTokens;
+      this.currentBoardMoves = boardMoves;
+      this.selectedMoveIndex = -1;
       return {
         ...game,
         boardMoves,
-        moveTokens: moveTokens
+        moveTokens
       };
     })
   );
@@ -110,17 +163,70 @@ export class GameDetailPage {
     this.location.back();
   }
 
-  selectMove(index: number, board: XiangqiBoardComponent): void {
+  boardPosition(): string {
+    return 'start';
+  }
+
+  selectMove(index: number | string): void {
     const moveIndex = Number(index);
+    if (moveIndex < 0) {
+      this.xiangqiBoard?.reset();
+      this.selectedMoveIndex = moveIndex;
+      return;
+    }
     if (Number.isNaN(moveIndex) || moveIndex < 0) {
       return;
     }
+    const move = this.currentBoardMoves[moveIndex];
+    if (!move) {
+      return;
+    }
     this.selectedMoveIndex = moveIndex;
-    board.setMoveCursor(moveIndex);
+    this.xiangqiBoard?.takeMove(move);
   }
 
-  onPieceMove(move: unknown): void {
-    console.log('Piece move event:', move);
+  canGoFirst(): boolean {
+    return this.selectedMoveIndex > 0;
+  }
+
+  canGoPrevious(): boolean {
+    return this.selectedMoveIndex >= 0;
+  }
+
+  canGoNext(): boolean {
+    return this.selectedMoveIndex < this.moveCount() - 1;
+  }
+
+  canGoLast(): boolean {
+    const lastMoveIndex = this.moveCount() - 1;
+    return lastMoveIndex >= 0 && this.selectedMoveIndex !== lastMoveIndex;
+  }
+
+  goFirst(): void {
+    this.selectMove(-1);
+  }
+
+  goPrevious(): void {
+    this.selectedMoveIndex--;
+    this.selectMove(this.selectedMoveIndex);
+  }
+
+  goNext(): void {
+    const nextIndex = this.selectedMoveIndex + 1;
+    if (nextIndex >= this.moveCount()) {
+      return;
+    }
+
+    this.selectMove(nextIndex);
+  }
+
+  goLast(): void {
+    const lastMoveIndex = this.moveCount() - 1;
+    if (lastMoveIndex < 0) {
+      return;
+    }
+
+    this.selectMove(lastMoveIndex);
   }
 
   moveOptionLabel(index: number, move: string): string {
@@ -129,18 +235,18 @@ export class GameDetailPage {
     return `${paddedLabel} ${move}`;
   }
 
-  private toBoardMoves(moveList: string): XiangqiMove[] {
-    try {
-      return XiangqBoardUtils.parseMoveList(moveList, 'start');
-    } catch {
-      return [];
-    }
-  }
-
   private toMoveTokens(moveList: string): string[] {
     return moveList
       .split(',')
       .map((move) => move.trim())
       .filter(Boolean);
+  }
+
+  private toBoardMoves(moveList: string): XiangqiMove[] {
+    return XiangqBoardUtils.parseMoveNotationList(moveList);
+  }
+
+  private moveCount(): number {
+    return this.currentMoveTokens.length;
   }
 }
