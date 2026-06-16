@@ -87,7 +87,7 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
             print(
                 "DEBUG auth invalid credentials "
                 f"username={username!r} "
-                f"password_present={bool(password)} "
+                f"password_present={password} "
                 f"error_code={error_code} "
                 f"error_message={error_message!r}"
             )
