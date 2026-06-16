@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     cognito_client_id: str = ""
     cognito_user_pool_id: str = ""
     cognito_client_secret: str | None = None
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/1"
+    celery_timezone: str = "Australia/Sydney"
 
 
 @lru_cache

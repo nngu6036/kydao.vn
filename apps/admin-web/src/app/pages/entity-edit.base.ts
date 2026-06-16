@@ -165,10 +165,21 @@ export abstract class EntityEditBasePage {
       ? this.api.update(kind, this.activeId, payload)
       : this.api.create(kind, payload);
 
+    const isCreate = !this.activeId;
+
     request.subscribe({
-      next: () => {
+      next: (item) => {
         this.saving = false;
         this.message = 'Đã lưu';
+        if (isCreate) {
+          const id = this.recordId(item);
+          if (id) {
+            this.activeId = id;
+            this.router.navigate(['/', kind, id, 'edit'], { replaceUrl: true });
+            return;
+          }
+        }
+
         if (this.navigateToListAfterSave()) {
           this.router.navigate(['/', kind]);
         }
@@ -366,5 +377,10 @@ export abstract class EntityEditBasePage {
       payload[key] = raw === '' ? null : raw;
     }
     return payload;
+  }
+
+  private recordId(item: Record<string, unknown>): string | undefined {
+    const id = item['id'] ?? item['_id'];
+    return typeof id === 'string' && id ? id : undefined;
   }
 }

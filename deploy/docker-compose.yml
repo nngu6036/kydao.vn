@@ -7,6 +7,12 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  redis:
+    image: redis:7-alpine
+    container_name: chess-elo-redis
+    ports:
+      - "6379:6379"
+
   api:
     image: chess-elo-api
     build:
@@ -21,6 +27,41 @@ services:
     depends_on:
       - mongo
 
+  celery-worker:
+    image: chess-elo-api
+    build:
+      context: ../apps/api
+    container_name: chess-elo-celery-worker
+    env_file:
+      - ../apps/api/.env
+    environment:
+      CHESS_ELO_MONGODB_URI: mongodb://mongo:27017
+      CHESS_ELO_CELERY_BROKER_URL: redis://redis:6379/0
+      CHESS_ELO_CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CHESS_ELO_CELERY_TIMEZONE: Australia/Sydney
+    command: celery -A app.celery_app:celery_app worker --loglevel=info
+    depends_on:
+      - mongo
+      - redis
+
+  celery-beat:
+    image: chess-elo-api
+    build:
+      context: ../apps/api
+    container_name: chess-elo-celery-beat
+    env_file:
+      - ../apps/api/.env
+    environment:
+      CHESS_ELO_MONGODB_URI: mongodb://mongo:27017
+      CHESS_ELO_CELERY_BROKER_URL: redis://redis:6379/0
+      CHESS_ELO_CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CHESS_ELO_CELERY_TIMEZONE: Australia/Sydney
+    command: celery -A app.celery_app:celery_app beat --loglevel=info --schedule=/app/celerybeat/celerybeat-schedule
+    volumes:
+      - celery-beat-data:/app/celerybeat
+    depends_on:
+      - redis
+
   nginx:
     image: nginx:1.27-alpine
     container_name: chess-elo-nginx
@@ -33,3 +74,4 @@ services:
 
 volumes:
   mongo-data:
+  celery-beat-data:
