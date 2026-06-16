@@ -14,7 +14,7 @@
             "outputPath": "dist/app",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "sourceMap": true,
+            "sourceMap": false,
             "optimization": {
               "fonts": {
                 "inline": false
@@ -70,7 +70,7 @@
               ]
             }
           },
-          "defaultConfiguration": "dev"
+          "defaultConfiguration": "prod"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",

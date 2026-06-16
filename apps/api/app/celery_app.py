@@ -20,8 +20,12 @@ celery_app.conf.update(
     accept_content=["json"],
     result_serializer="json",
     beat_schedule={
-        "daily-midnight-task": {
-            "task": "app.tasks.daily_midnight_task",
+        "update-tournament-participants": {
+            "task": "app.tasks.update_tournament_participants",
+            "schedule": crontab(hour=0, minute=0),
+        },
+        "update-vn-player-elo": {
+            "task": "app.tasks.update_vn_player_elo",
             "schedule": crontab(hour=0, minute=0),
         },
     },

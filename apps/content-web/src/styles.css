@@ -1227,6 +1227,63 @@ app-ranking-block {
   color: #6B6B6B;
 }
 
+.list-page-block {
+  min-height: 0;
+}
+
+.list-page-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8E4DF;
+  color: #6B6B6B;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.list-page-pagination .pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list-page-pagination .page-link {
+  display: inline-grid;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  place-items: center;
+  border: 1px solid #E8E4DF;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #2C2C2C;
+  padding: 0 0.625rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.list-page-pagination .page-link:hover {
+  border-color: #8B3A3A;
+  color: #8B3A3A;
+}
+
+.list-page-pagination .page-item.active .page-link {
+  border-color: #8B3A3A;
+  background: #8B3A3A;
+  color: #FFFFFF;
+}
+
+.list-page-pagination .page-item.disabled .page-link {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .detail-page-block .block-title {
   text-transform: none;
   letter-spacing: normal;
@@ -1501,5 +1558,10 @@ app-ranking-block {
 @media (max-width: 768px) {
   .page-with-back {
     grid-template-columns: 1fr;
+  }
+
+  .list-page-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }

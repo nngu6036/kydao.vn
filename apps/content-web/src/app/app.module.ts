@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { NgbPaginationModule } from '@ng-bootstrap/ng-bootstrap';
 import { XiangqiBoardModule } from '@chess-elo/shared-ui/xiangqi-board';
 import { AppComponent } from './app.component';
 import { routes } from './app.routes';
@@ -45,7 +46,7 @@ import { TournamentDetailPage } from './pages/tournament-detail.page';
     TournamentBlockComponent,
     TournamentDetailPage,
   ],
-  imports: [BrowserModule, BrowserAnimationsModule, FormsModule, RouterModule.forRoot(routes), XiangqiBoardModule],
+  imports: [BrowserModule, BrowserAnimationsModule, FormsModule, NgbPaginationModule, RouterModule.forRoot(routes), XiangqiBoardModule],
   providers: [provideHttpClient(withInterceptors([authInterceptor]))],
   bootstrap: [AppComponent],
 })

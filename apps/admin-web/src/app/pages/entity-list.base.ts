@@ -41,7 +41,7 @@ export const ENTITY_LIST_TEMPLATE = `
     <a class="primary-action" [routerLink]="['/', config.kind, 'new']">Tạo {{ config.singular }}</a>
   </section>
 
-  <section class="work-panel" *ngIf="vm$ | async as vm">
+  <section class="work-panel entity-list-panel" *ngIf="vm$ | async as vm">
     <div class="table-toolbar">
       <input type="search" [formControl]="search" placeholder="Tìm kiếm bản ghi" />
       <span>{{ vm.page.total }} bản ghi</span>
@@ -86,14 +86,17 @@ export const ENTITY_LIST_TEMPLATE = `
       </div>
     </div>
 
-    <div class="pagination-bar">
-      <button class="secondary-action" type="button" (click)="previousPage()" [disabled]="vm.page.page <= 1">
-        Trước
-      </button>
+    <div class="pagination-bar pagination-bar-bottom">
+      <ngb-pagination
+        [collectionSize]="vm.page.total"
+        [page]="vm.page.page"
+        [pageSize]="pageSize"
+        [boundaryLinks]="true"
+        [rotate]="true"
+        [maxSize]="5"
+        (pageChange)="goToPage($event, vm.page.pages)"
+      ></ngb-pagination>
       <span>Trang {{ vm.page.page }} / {{ vm.page.pages || 1 }}</span>
-      <button class="secondary-action" type="button" (click)="nextPage(vm.page)" [disabled]="vm.page.page >= vm.page.pages">
-        Sau
-      </button>
     </div>
 
     <ng-template #emptyState>
@@ -109,7 +112,7 @@ export abstract class EntityListBasePage {
   private readonly pageSubject = new BehaviorSubject(1);
   private readonly sortSubject = new BehaviorSubject<SortState>({ direction: 'asc' });
   private readonly refreshSubject = new BehaviorSubject(0);
-  private readonly pageSize = 25;
+  readonly pageSize = 25;
 
   readonly config: EntityConfig;
   readonly columns: ListColumn[];
@@ -144,14 +147,9 @@ export abstract class EntityListBasePage {
     this.gridTemplateColumns = this.toGridTemplateColumns(columns);
   }
 
-  previousPage(): void {
-    this.pageSubject.next(Math.max(1, this.pageSubject.value - 1));
-  }
-
-  nextPage(page: PageResponse): void {
-    if (page.page < page.pages) {
-      this.pageSubject.next(page.page + 1);
-    }
+  goToPage(requestedPage: number, pages: number): void {
+    const lastPage = Math.max(1, pages || 1);
+    this.pageSubject.next(Math.min(Math.max(1, Math.trunc(requestedPage)), lastPage));
   }
 
   sortBy(column: ListColumn): void {

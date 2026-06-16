@@ -120,8 +120,6 @@
         function initializeSwiper(sliderContainer) {
             var sliderOptions = sliderContainer.data('slider-options');
 
-            console.log("Slider options: ", sliderOptions);
-
             var previousArrow = sliderContainer.find('.slider-prev');
             var nextArrow = sliderContainer.find('.slider-next');
             var paginationElement = sliderContainer.find('.slider-pagination');
@@ -178,7 +176,6 @@
             };
 
             var finalConfig = $.extend({}, defaultSwiperConfig, sliderOptions);
-            console.log("Complete Swiper options: ", finalConfig);
 
             // Initialize the Swiper instance
             return new Swiper(sliderContainer.get(0), finalConfig);
@@ -462,4 +459,3 @@
 
 
 })(jQuery); // End jQuery
-

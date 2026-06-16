@@ -84,6 +84,13 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
             "PasswordResetRequiredException",
             "UserNotConfirmedException",
         }:
+            print(
+                "DEBUG auth invalid credentials "
+                f"username={username!r} "
+                f"password_present={bool(password)} "
+                f"error_code={error_code} "
+                f"error_message={error_message!r}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials or Cognito app client auth flow is not enabled",
@@ -97,6 +104,12 @@ def cognito_login(username: str, password: str) -> dict[str, Any]:
 @router.post("/login")
 async def login(payload: LoginRequest):
     logger.info("Auth login request received username_present=%s password_present=%s", bool(payload.username), bool(payload.password))
+    if not payload.username or not payload.password:
+        print(
+            "DEBUG auth invalid login payload "
+            f"username_present={bool(payload.username)} "
+            f"password_present={bool(payload.password)}"
+        )
     response = await run_in_threadpool(cognito_login, payload.username, payload.password)
 
     if response.get("ChallengeName"):

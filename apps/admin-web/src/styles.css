@@ -243,6 +243,10 @@ h2 {
   padding: 22px;
 }
 
+.entity-list-panel {
+  min-height: 0;
+}
+
 .board-panel {
   margin-top: 18px;
 }
@@ -566,18 +570,54 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 14px;
   margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
   color: var(--muted);
   font-size: 14px;
   font-weight: 700;
 }
 
-.pagination-bar .secondary-action {
-  min-height: 36px;
+.pagination-bar .pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.pagination-bar .secondary-action:disabled {
+.pagination-bar .page-link {
+  display: inline-grid;
+  min-width: 34px;
+  min-height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--text);
+  padding: 0 10px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pagination-bar .page-link:hover {
+  border-color: #c8d2ea;
+  background: #eef3ff;
+  color: var(--accent);
+}
+
+.pagination-bar .page-item.active .page-link {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.pagination-bar .page-item.disabled .page-link {
   cursor: default;
   opacity: 0.55;
 }
@@ -799,4 +839,5 @@ h2 {
   .page-head {
     display: grid;
   }
+
 }

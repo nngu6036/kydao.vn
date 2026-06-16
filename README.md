@@ -45,6 +45,37 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 The API runs at `http://localhost:8000`. Check it with `http://localhost:8000/health`.
 
+### Local Celery
+
+Celery uses Redis as the local broker and result backend. Start Redis first:
+
+```bash
+docker run --rm --name chess-elo-redis -p 6379:6379 redis:7-alpine
+```
+
+In a second terminal, start the Celery worker:
+
+```bash
+cd apps/api
+python -m pip install -r requirements.txt
+python -m celery -A app.celery_app:celery_app worker --loglevel=info
+```
+
+In a third terminal, start Celery Beat so the midnight schedule is active:
+
+```bash
+cd apps/api
+python -m celery -A app.celery_app:celery_app beat --loglevel=info
+```
+
+The default local Celery settings are:
+
+```bash
+CHESS_ELO_CELERY_BROKER_URL=redis://localhost:6379/0
+CHESS_ELO_CELERY_RESULT_BACKEND=redis://localhost:6379/1
+CHESS_ELO_CELERY_TIMEZONE=Australia/Sydney
+```
+
 ## Frontends
 ```bash
 cd apps/admin-web
