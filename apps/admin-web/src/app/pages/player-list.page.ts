@@ -15,6 +15,6 @@ export class PlayerListPage extends EntityListBasePage {
       { key: 'title', label: 'Danh hiệu', widthPercent: 20 },
       { key: 'nationality', label: 'Quốc tịch', widthPercent: 18 },
       { key: 'elo', label: 'ELO', widthPercent: 10 },
-    ]);
+    ], { column: 'name', direction: 'asc' });
   }
 }

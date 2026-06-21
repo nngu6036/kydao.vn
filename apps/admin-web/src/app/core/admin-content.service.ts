@@ -118,6 +118,15 @@ export const ENTITY_CONFIGS: Record<EntityKind, EntityConfig> = {
           { value: 'non-vn', label: 'ngoài Việt Nam' },
         ],
       },
+      {
+        key: 'sexuality',
+        label: 'Giới tính',
+        type: 'select',
+        options: [
+          { value: 'male', label: 'Nam' },
+          { value: 'female', label: 'Nữ' },
+        ],
+      },
       { key: 'location', label: 'Địa phương' },
       {
         key: 'initial_level',

@@ -44,32 +44,33 @@ import { ContentService } from '../core/content.service';
 
 
 
-                <div class="game-list">
-                  <article class="game-card" *ngFor="let game of games$ | async">
-                    <div class="game-main">
-                      <div class="game-players">
-                        <div class="player-row game-player-red">
-                          <span class="player-color-indicator red"></span>
-                          <a class="player-name player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
-                        </div>
-                        <div class="game-result">{{ game.result }}</div>
-                        <div class="player-row game-player-black">
-                          <span class="player-color-indicator black"></span>
-                          <a class="player-name player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
-                        </div>
-                      </div>
-                      <div class="game-meta">
-                        <span class="meta-item game-meta-tournament">🏆 <span class="meta-label">Giải đấu:</span> <a class="entity-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a></span>
-                        <span class="meta-item game-meta-date">📅 <span class="meta-label">Ngày:</span> {{ game.date }}</span>
-                        <span class="meta-item game-meta-moves"><span class="meta-label">Nước đi:</span> {{ game.moves }}</span>
-                        <span class="meta-item opening-tag game-meta-opening"><span class="meta-label">Khai cuộc:</span> <a class="entity-link opening-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a></span>
-                      </div>
-                    </div>
-                    <div class="game-actions">
-                      <span *ngIf="game.analyzed" class="analyzed-badge">Đã phân tích</span>
-                      <button class="play-btn" type="button" [routerLink]="['/games', game.id]">Xem</button>
-                    </div>
-                  </article>
+                <div class="tournament-table-wrap">
+                  <table class="tournament-table game-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">STT</th>
+                        <th scope="col">Kỳ thủ đỏ</th>
+                        <th scope="col">Kỳ thủ đen</th>
+                        <th scope="col">Kết quả</th>
+                        <th scope="col">Số nước</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let game of games$ | async; let i = index">
+                        <td>{{ i + 1 }}</td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
+                        </td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
+                        </td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/games', game.id]">{{ game.result }}</a>
+                        </td>
+                        <td>{{ game.moves }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

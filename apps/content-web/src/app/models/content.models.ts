@@ -12,6 +12,8 @@ export interface PlayerItem {
   name: string;
   title: string;
   location: string;
+  nationality: string;
+  sexuality: string;
   rating: number;
   change: number;
 }

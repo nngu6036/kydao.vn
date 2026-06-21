@@ -49,6 +49,20 @@ async def list_players(
     return _page(items, total, skip, limit)
 
 
+@router.get("/players/elo-rankings", response_model=Page)
+async def list_elo_ranking_players(
+    query: str = "",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    skip: int | None = Query(default=None, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=200),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    skip, limit = _paging(page, page_size, skip, limit)
+    items, total = await PlayerRepository(db).list_elo_rankings(query=query, skip=skip, limit=limit)
+    return _page(items, total, skip, limit)
+
+
 @router.get("/players/{player_id}", response_model=Player)
 async def get_player(player_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
     player = await PlayerRepository(db).get(player_id)

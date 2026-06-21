@@ -22,36 +22,8 @@ import { ContentService } from '../core/content.service';
             <button class="back-link" type="button" (click)="goBack()" aria-label="Quay lại">← Quay lại</button>
 
             <div class="page-main">
-              <div class="content-block detail-page-block">
-                <div class="detail-page-header">
-                  <div class="detail-page-avatar">X</div>
-                  <div>
-                    <h4 class="detail-page-name">{{ game.tournament_name }}</h4>
-                  </div>
-                </div>
-
-                <div class="game-main">
-                  <div class="game-players detail-game-players">
-                    <div class="player-row game-player-red">
-                      <span class="player-color-indicator red"></span>
-                      <a class="player-name player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
-                    </div>
-                    <div class="game-result">{{ game.result }}</div>
-                    <div class="player-row game-player-black">
-                      <span class="player-color-indicator black"></span>
-                      <a class="player-name player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
-                    </div>
-                  </div>
-                  <div class="game-meta detail-game-meta">
-                    <span class="meta-item game-meta-tournament">🏆 <span class="meta-label">Giải đấu:</span> <a class="entity-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a></span>
-                    <span class="meta-item game-meta-date">📅 <span class="meta-label">Ngày:</span> {{ game.date }}</span>
-                    <span class="meta-item game-meta-moves"><span class="meta-label">Nước đi:</span> {{ game.moves }}</span>
-                    <span class="meta-item opening-tag game-meta-opening"><span class="meta-label">Khai cuộc:</span> <a class="entity-link opening-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a></span>
-                    <span *ngIf="game.analyzed" class="analyzed-badge">Đã phần tích</span>
-                  </div>
-                </div>
-
-                <div class="game-board-column">
+              <div class="content-block detail-page-block game-detail-layout">
+                <div class="game-detail-board-column">
                   <div class="game-board-preview">
                     <div class="game-board-layout">
                       <div class="game-board-toolbar" role="toolbar" aria-label="Board navigation">
@@ -116,6 +88,39 @@ import { ContentService } from '../core/content.service';
                           </option>
                         </select>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="game-detail-info-column">
+                  <div class="game-detail-info-list">
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Tournament name:</span>
+                      <a class="game-detail-info-value player-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Red player name:</span>
+                      <a class="game-detail-info-value player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Black player name:</span>
+                      <a class="game-detail-info-value player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Result:</span>
+                      <span class="game-detail-info-value">{{ game.result }}</span>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Date:</span>
+                      <span class="game-detail-info-value">{{ game.date }}</span>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Move number:</span>
+                      <span class="game-detail-info-value">{{ game.moves }}</span>
+                    </div>
+                    <div class="game-detail-info-row">
+                      <span class="game-detail-info-label">Openning:</span>
+                      <a class="game-detail-info-value player-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a>
                     </div>
                   </div>
                 </div>

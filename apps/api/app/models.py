@@ -35,6 +35,7 @@ class Player(BaseModel):
     yearOfBirth: int | str | None = None
     birth_year: int | str | None = None
     gender: str | None = None
+    sexuality: str | None = None
     elo: float | None = None
     rating: int | None = None
     change: int | None = None

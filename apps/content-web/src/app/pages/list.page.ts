@@ -26,47 +26,93 @@ interface PagedList<T> {
             <div class="page-main">
               <h1 class="search-title">{{ title }}</h1>
               <div class="content-block list-page-block">
-                <div class="list-page-list" *ngIf="kind === 'players' && playersPage$ | async as page">
-                  <article class="list-page-row player-list-row" *ngFor="let player of page.items" [routerLink]="['/players', player.id]">
-                    <div class="list-page-main">
-                      <a class="list-page-title player-link" [routerLink]="['/players', player.id]">{{ player.name }}</a>
-                      <div class="list-page-meta">{{ player.title }} · {{ player.location }}</div>
-                    </div>
-                    <div class="list-page-side">
-                      <div class="list-page-emphasis">{{ player.rating }}</div>
-                      <div class="rating-change" [class.positive]="player.change > 0" [class.negative]="player.change < 0">
-                        {{ player.change > 0 ? '▲' : player.change < 0 ? '▼' : '•' }} {{ player.change > 0 ? '+' : '' }}{{ player.change }}
-                      </div>
-                    </div>
-                  </article>
+                <div class="player-table-section" *ngIf="kind === 'players' && playersPage$ | async as page">
+                  <div class="list-filter" role="radiogroup" aria-label="Lọc kỳ thủ theo quốc tịch">
+                    <label>
+                      <input
+                        type="radio"
+                        name="playerNationality"
+                        value="all"
+                        [checked]="playerNationalityFilter === 'all'"
+                        (change)="setPlayerNationalityFilter('all')"
+                      />
+                      <span>Tất cả</span>
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="playerNationality"
+                        value="vn"
+                        [checked]="playerNationalityFilter === 'vn'"
+                        (change)="setPlayerNationalityFilter('vn')"
+                      />
+                      <span>Việt Nam</span>
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="playerNationality"
+                        value="non-vn"
+                        [checked]="playerNationalityFilter === 'non-vn'"
+                        (change)="setPlayerNationalityFilter('non-vn')"
+                      />
+                      <span>ngoài Việt Nam</span>
+                    </label>
+                  </div>
+
+                  <div class="tournament-table-wrap">
+                    <table class="tournament-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">STT</th>
+                          <th scope="col">Tên</th>
+                          <th scope="col">Giới tính</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let player of page.items; let i = index">
+                          <td>{{ (page.page - 1) * pageSize + i + 1 }}</td>
+                          <td>
+                            <a class="tournament-table-link player-link" [routerLink]="['/players', player.id]">{{ player.name }}</a>
+                          </td>
+                          <td>{{ displaySexuality(player.sexuality) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
-                <div class="game-list" *ngIf="kind === 'games' && gamesPage$ | async as page">
-                  <article class="game-card" *ngFor="let game of page.items">
-                    <div class="game-main">
-                      <div class="game-players">
-                        <div class="player-row game-player-red">
-                          <span class="player-color-indicator red"></span>
-                          <a class="player-name player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
-                        </div>
-                        <div class="game-result">{{ game.result }}</div>
-                        <div class="player-row game-player-black">
-                          <span class="player-color-indicator black"></span>
-                          <a class="player-name player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
-                        </div>
-                      </div>
-                      <div class="game-meta">
-                        <span class="meta-item game-meta-tournament">🏆 <a class="entity-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a></span>
-                        <span class="meta-item game-meta-date">📅 {{ game.date }}</span>
-                        <span class="meta-item game-meta-moves">{{ game.moves }} nước</span>
-                        <span class="meta-item opening-tag game-meta-opening"><a class="entity-link opening-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a></span>
-                      </div>
-                    </div>
-                    <div class="game-actions">
-                      <span *ngIf="game.analyzed" class="analyzed-badge">Đã phần tích</span>
-                      <button class="play-btn" type="button" [routerLink]="['/games', game.id]">Xem</button>
-                    </div>
-                  </article>
+                <div class="tournament-table-wrap" *ngIf="kind === 'games' && gamesPage$ | async as page">
+                  <table class="tournament-table game-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">STT</th>
+                        <th scope="col">Kỳ thủ đỏ</th>
+                        <th scope="col">Kỳ thủ đen</th>
+                        <th scope="col">Kết quả</th>
+                        <th scope="col">Giải đấu</th>
+                        <th scope="col">Số nước</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let game of page.items; let i = index">
+                        <td>{{ (page.page - 1) * pageSize + i + 1 }}</td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
+                        </td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
+                        </td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/games', game.id]">{{ game.result }}</a>
+                        </td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a>
+                        </td>
+                        <td>{{ game.moves }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <div class="tournament-table-wrap" *ngIf="kind === 'tournaments' && tournamentsPage$ | async as page">
@@ -153,7 +199,9 @@ export class ListPage {
   private readonly location = inject(Location);
   private readonly content = inject(ContentService);
   private readonly pageSubject = new BehaviorSubject(1);
+  private readonly playerNationalityFilterSubject = new BehaviorSubject<'all' | 'vn' | 'non-vn'>('all');
   readonly pageSize = 20;
+  playerNationalityFilter: 'all' | 'vn' | 'non-vn' = 'all';
 
   readonly kind = this.route.snapshot.data['kind'] as 'tournaments' | 'players' | 'games' | 'openings' | 'rankings';
   readonly title = this.route.snapshot.data['title'] || 'Danh sách';
@@ -161,8 +209,12 @@ export class ListPage {
   private readonly tournaments$ = this.content.tournaments$.pipe(
     map(items => [...items].sort((a, b) => this.parseDisplayDate(b.date) - this.parseDisplayDate(a.date)))
   );
-  private readonly players$ = this.content.players$.pipe(
-    map(items => [...items].sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })))
+  private readonly players$ = combineLatest([this.content.players$, this.playerNationalityFilterSubject]).pipe(
+    map(([items, nationality]) =>
+      items
+        .filter(item => nationality === 'all' || item.nationality === nationality)
+        .sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
+    )
   );
   private readonly games$ = this.content.games$.pipe(
     map(items => [...items].sort((a, b) => this.parseDisplayDate(a.date) - this.parseDisplayDate(b.date)))
@@ -186,6 +238,22 @@ export class ListPage {
   goToPage(requestedPage: number, pages: number): void {
     const lastPage = Math.max(1, pages || 1);
     this.pageSubject.next(Math.min(Math.max(1, Math.trunc(requestedPage)), lastPage));
+  }
+
+  setPlayerNationalityFilter(value: 'all' | 'vn' | 'non-vn'): void {
+    this.playerNationalityFilter = value;
+    this.playerNationalityFilterSubject.next(value);
+    this.pageSubject.next(1);
+  }
+
+  displaySexuality(value: string): string {
+    if (value === 'male') {
+      return 'Nam';
+    }
+    if (value === 'female') {
+      return 'Nữ';
+    }
+    return value || '-';
   }
 
   private paginate<T>(source$: Observable<T[]>): Observable<PagedList<T>> {

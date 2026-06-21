@@ -164,6 +164,7 @@ class MongoRepository:
 class PlayerRepository(MongoRepository):
     collection_name = "players"
     search_fields = ("name", "title", "location", "url")
+    default_sort = ("name", 1)
     computed_sort_fields = ("kydao_id", "elo")
 
     async def list(
@@ -175,22 +176,36 @@ class PlayerRepository(MongoRepository):
         sort_by: str | None = None,
         sort_dir: int = 1,
     ) -> tuple[list[dict[str, Any]], int]:
-        filter_ = self._vn_player_filter(query)
         if sort_by in self.computed_sort_fields:
+            filter_ = _text_filter(query, self.search_fields)
             cursor = self.collection.find(filter_)
             items = [self._map_player(_public_doc(document)) async for document in cursor]
             total = len(items)
             items = _sort_public_items(items, sort_by, sort_dir)
             return items[skip : skip + limit], total
 
+        items, total = await super().list(
+            query=query,
+            skip=skip,
+            limit=limit,
+            sort_by=sort_by,
+            sort_dir=sort_dir,
+        )
+        return [self._map_player(item) for item in items], total
+
+    async def list_elo_rankings(
+        self,
+        *,
+        query: str = "",
+        skip: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[dict[str, Any]], int]:
+        filter_ = self._vn_player_filter(query)
         cursor = self.collection.find(filter_)
-        sort = (sort_by, sort_dir) if sort_by else self.default_sort
-        if sort:
-            cursor = cursor.sort(*sort)
-        cursor = cursor.skip(skip).limit(limit)
         items = [self._map_player(_public_doc(document)) async for document in cursor]
-        total = await self.collection.count_documents(filter_)
-        return items, total
+        total = len(items)
+        items = sorted(items, key=self._elo_ranking_sort_key)
+        return items[skip : skip + limit], total
 
     async def get(self, id: str) -> dict[str, Any] | None:
         item = await super().get(id)
@@ -241,6 +256,12 @@ class PlayerRepository(MongoRepository):
         if text_filter:
             filters.append(text_filter)
         return {"$and": filters}
+
+    def _elo_ranking_sort_key(self, item: dict[str, Any]) -> tuple[int, float, str]:
+        elo = item.get("elo")
+        if not isinstance(elo, int | float):
+            return (1, 0, str(item.get("name") or "").casefold())
+        return (0, -float(elo), str(item.get("name") or "").casefold())
 
     def _kydao_id(self, url: str | None) -> str | None:
         if not url:

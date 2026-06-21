@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, shareReplay } from 'rxjs/operators';
-import { forkJoin, type Observable } from 'rxjs';
+import { type Observable } from 'rxjs';
 import type { GameItem, OpeningItem, PlayerItem, RankingItem, TournamentItem } from '../models/content.models';
 import { environment } from './environment';
 
@@ -26,6 +26,10 @@ interface PageResponse<T> {
 type ApiPlayer = Partial<PlayerItem> & {
   id: string;
   name: string;
+  elo?: number | null;
+  win?: number | null;
+  draw?: number | null;
+  lose?: number | null;
 };
 
 type ApiTournament = Partial<TournamentItem> & {
@@ -63,11 +67,8 @@ export class ContentService {
     shareReplay(1)
   );
 
-  readonly rankings$ = forkJoin({
-    players: this.players$,
-    games: this.games$,
-  }).pipe(
-    map(({ players, games }) => this.toRankings(players, games)),
+  readonly rankings$ = this.fetchPage<ApiPlayer>('players/elo-rankings').pipe(
+    map(items => this.toRankings(items)),
     shareReplay(1)
   );
 
@@ -122,7 +123,7 @@ export class ContentService {
     );
   }
 
-  private fetchPage<T>(kind: 'players' | 'tournaments' | 'games'): Observable<T[]> {
+  private fetchPage<T>(kind: 'players' | 'players/elo-rankings' | 'tournaments' | 'games'): Observable<T[]> {
     return this.http.get<PageResponse<T>>(`${this.baseUrl}/${kind}`, {
       params: { page: 1, page_size: 200 },
     }).pipe(map(page => page.items));
@@ -140,7 +141,9 @@ export class ContentService {
       name: item.name,
       title: item.title ?? '',
       location: item.location ?? '',
-      rating: item.rating ?? 0,
+      nationality: item.nationality ?? '',
+      sexuality: item.sexuality ?? '',
+      rating: item.elo ?? item.rating ?? 0,
       change: item.change ?? 0,
     };
   }
@@ -201,28 +204,22 @@ export class ContentService {
     }));
   }
 
-  private toRankings(players: PlayerItem[], games: GameItem[]): RankingItem[] {
-    const gamesByPlayer = new Map<string, number>();
-    for (const game of games) {
-      if (game.red_id) {
-        gamesByPlayer.set(game.red_id, (gamesByPlayer.get(game.red_id) ?? 0) + 1);
-      }
-      if (game.black_id) {
-        gamesByPlayer.set(game.black_id, (gamesByPlayer.get(game.black_id) ?? 0) + 1);
-      }
-    }
-
-    return [...players]
-      .sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
+  private toRankings(players: ApiPlayer[]): RankingItem[] {
+    return players
+      .sort((a, b) => (b.elo ?? b.rating ?? 0) - (a.elo ?? a.rating ?? 0) || a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
       .map((player, index) => ({
         id: player.id,
         rank: index + 1,
         player_id: player.id,
         player_name: player.name,
-        rating: player.rating,
-        change: player.change,
-        games: gamesByPlayer.get(player.id) ?? 0,
+        rating: player.elo ?? player.rating ?? 0,
+        change: player.change ?? 0,
+        games: this.playerGames(player),
       }));
+  }
+
+  private playerGames(player: ApiPlayer): number {
+    return (player.win ?? 0) + (player.draw ?? 0) + (player.lose ?? 0);
   }
 
   private toWinRate(games: GameItem[]): OpeningItem['winRate'] {
