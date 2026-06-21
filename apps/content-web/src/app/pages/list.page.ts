@@ -69,25 +69,25 @@ interface PagedList<T> {
                   </article>
                 </div>
 
-                <div class="list-page-list" *ngIf="kind === 'tournaments' && tournamentsPage$ | async as page">
-                  <article class="tournament-card" *ngFor="let tournament of page.items" [routerLink]="['/tournaments', tournament.id]">
-                    <div class="tournament-info">
-                      <div class="tournament-name">{{ tournament.name }}</div>
-                      <div class="tournament-meta">
-                        <span class="meta-item tournament-meta-date">📅 {{ tournament.date }}</span>
-                        <span class="meta-item tournament-meta-location">📍 {{ tournament.location }}</span>
-                      <span class="meta-item tournament-meta-participants">{{ tournament.participants }} kỳ thủ</span>
-                      </div>
-                    </div>
-                    <span
-                      class="status-badge"
-                      [class.status-active]="tournament.status === 'Đang diễn ra'"
-                      [class.status-upcoming]="tournament.status === 'Sắp diễn ra'"
-                      [class.status-finished]="tournament.status === 'Đã kết thúc'"
-                    >
-                      {{ tournament.status }}
-                    </span>
-                  </article>
+                <div class="tournament-table-wrap" *ngIf="kind === 'tournaments' && tournamentsPage$ | async as page">
+                  <table class="tournament-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">STT</th>
+                        <th scope="col">Tên</th>
+                        <th scope="col">Ngày</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let tournament of page.items; let i = index">
+                        <td>{{ (page.page - 1) * pageSize + i + 1 }}</td>
+                        <td>
+                          <a class="tournament-table-link player-link" [routerLink]="['/tournaments', tournament.id]">{{ tournament.name }}</a>
+                        </td>
+                        <td>{{ tournament.date }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <div class="opening-list" *ngIf="kind === 'openings' && openingsPage$ | async as page">
@@ -221,8 +221,19 @@ export class ListPage {
   }
 
   private parseDisplayDate(value: string): number {
-    const firstPart = value.split('-')[0].trim();
-    const [day, month, year] = firstPart.split('/').map(part => Number.parseInt(part, 10));
-    return new Date(year, month - 1, day).getTime();
+    const dateText = value.trim();
+    const isoMatch = dateText.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch.map(part => Number.parseInt(part, 10));
+      return new Date(year, month - 1, day).getTime();
+    }
+
+    const displayMatch = dateText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (displayMatch) {
+      const [, day, month, year] = displayMatch.map(part => Number.parseInt(part, 10));
+      return new Date(year, month - 1, day).getTime();
+    }
+
+    return 0;
   }
 }

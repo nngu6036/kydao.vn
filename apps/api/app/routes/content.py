@@ -57,6 +57,20 @@ async def get_player(player_id: str, db: AsyncIOMotorDatabase = Depends(get_data
     return player
 
 
+@router.get("/players/{player_id}/games", response_model=Page)
+async def list_games_by_player(
+    player_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    skip: int | None = Query(default=None, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=200),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    skip, limit = _paging(page, page_size, skip, limit)
+    items, total = await GameRepository(db).list_by_player(player_id, skip=skip, limit=limit)
+    return _page(items, total, skip, limit)
+
+
 @router.get("/tournaments", response_model=Page)
 async def list_tournaments(
     query: str = "",
@@ -77,6 +91,20 @@ async def get_tournament(tournament_id: str, db: AsyncIOMotorDatabase = Depends(
     if not tournament:
         raise HTTPException(status_code=404, detail="Tournament not found")
     return tournament
+
+
+@router.get("/tournaments/{tournament_id}/games", response_model=Page)
+async def list_games_by_tournament(
+    tournament_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    skip: int | None = Query(default=None, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=200),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    skip, limit = _paging(page, page_size, skip, limit)
+    items, total = await GameRepository(db).list_by_tournament(tournament_id, skip=skip, limit=limit)
+    return _page(items, total, skip, limit)
 
 
 @router.get("/games", response_model=Page)

@@ -556,6 +556,11 @@ app-ranking-block {
   color: #6B6B6B;
 }
 
+.meta-label {
+  color: #4A4A4A;
+  font-weight: 600;
+}
+
 .tournament-meta-date,
 .tournament-meta-location,
 .tournament-meta-participants {
@@ -1284,6 +1289,99 @@ app-ranking-block {
   opacity: 0.55;
 }
 
+.list-page-block .player-list-row:hover,
+.list-page-block .game-card:hover,
+.list-page-block .opening-card:hover {
+  border-color: #E8E4DF;
+}
+
+.tournament-list-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  font-weight: 600;
+  text-decoration: none;
+  text-underline-offset: 0;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.tournament-list-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournament-list-name::before {
+  content: "•";
+  flex: 0 0 auto;
+}
+
+.tournament-list-date {
+  flex: 0 0 auto;
+  color: #6B6B6B;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tournament-list-link:hover {
+  background-color: #FFF1E8;
+  color: #6F2626;
+  text-decoration: none;
+}
+
+.tournament-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tournament-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tournament-table th,
+.tournament-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #E8E4DF;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tournament-table th {
+  color: #6B6B6B;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.tournament-table th:first-child,
+.tournament-table td:first-child {
+  width: 72px;
+  color: #6B6B6B;
+}
+
+.tournament-table th:last-child,
+.tournament-table td:last-child {
+  width: 140px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tournament-table-link {
+  font-weight: 600;
+}
+
+.tournament-table-link.player-link,
+.tournament-table-link.player-link:hover {
+  text-decoration: none;
+}
+
 .detail-page-block .block-title {
   text-transform: none;
   letter-spacing: normal;
@@ -1312,6 +1410,11 @@ app-ranking-block {
 
 .player-link:hover {
   color: #6F2626;
+}
+
+.tournament-list-link.player-link,
+.tournament-list-link.player-link:hover {
+  text-decoration: none;
 }
 
 .entity-link {
@@ -1564,4 +1667,15 @@ app-ranking-block {
     justify-content: center;
     flex-wrap: wrap;
   }
+
+  .tournament-list-link {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .tournament-list-name {
+    white-space: normal;
+  }
+
 }

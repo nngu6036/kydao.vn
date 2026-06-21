@@ -46,10 +46,10 @@ import { ContentService } from '../core/content.service';
                         </div>
                       </div>
                       <div class="game-meta">
-                        <span class="meta-item game-meta-tournament">🏆 <a class="entity-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a></span>
-                        <span class="meta-item game-meta-date">📅 {{ game.date }}</span>
-                        <span class="meta-item game-meta-moves">{{ game.moves }} nước</span>
-                        <span class="meta-item opening-tag game-meta-opening"><a class="entity-link opening-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a></span>
+                        <span class="meta-item game-meta-tournament">🏆 <span class="meta-label">Giải đấu:</span> <a class="entity-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a></span>
+                        <span class="meta-item game-meta-date">📅 <span class="meta-label">Ngày:</span> {{ game.date }}</span>
+                        <span class="meta-item game-meta-moves"><span class="meta-label">Nước đi:</span> {{ game.moves }}</span>
+                        <span class="meta-item opening-tag game-meta-opening"><span class="meta-label">Khai cuộc:</span> <a class="entity-link opening-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a></span>
                       </div>
                     </div>
                     <div class="game-actions">

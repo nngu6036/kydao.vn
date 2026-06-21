@@ -164,7 +164,7 @@ class MongoRepository:
 class PlayerRepository(MongoRepository):
     collection_name = "players"
     search_fields = ("name", "title", "location", "url")
-    computed_sort_fields = ("kydao_id",)
+    computed_sort_fields = ("kydao_id", "elo")
 
     async def list(
         self,
@@ -175,22 +175,22 @@ class PlayerRepository(MongoRepository):
         sort_by: str | None = None,
         sort_dir: int = 1,
     ) -> tuple[list[dict[str, Any]], int]:
+        filter_ = self._vn_player_filter(query)
         if sort_by in self.computed_sort_fields:
-            filter_ = _text_filter(query, self.search_fields)
             cursor = self.collection.find(filter_)
             items = [self._map_player(_public_doc(document)) async for document in cursor]
             total = len(items)
             items = _sort_public_items(items, sort_by, sort_dir)
             return items[skip : skip + limit], total
 
-        items, total = await super().list(
-            query=query,
-            skip=skip,
-            limit=limit,
-            sort_by=sort_by,
-            sort_dir=sort_dir,
-        )
-        return [self._map_player(item) for item in items], total
+        cursor = self.collection.find(filter_)
+        sort = (sort_by, sort_dir) if sort_by else self.default_sort
+        if sort:
+            cursor = cursor.sort(*sort)
+        cursor = cursor.skip(skip).limit(limit)
+        items = [self._map_player(_public_doc(document)) async for document in cursor]
+        total = await self.collection.count_documents(filter_)
+        return items, total
 
     async def get(self, id: str) -> dict[str, Any] | None:
         item = await super().get(id)
@@ -232,7 +232,15 @@ class PlayerRepository(MongoRepository):
 
     def _map_player(self, item: dict[str, Any]) -> dict[str, Any]:
         item["kydao_id"] = item.get("kydao_id") or self._kydao_id(item.get("url"))
+        item["elo"] = item.get("elo") or item.get("rating")
         return item
+
+    def _vn_player_filter(self, query: str) -> dict[str, Any]:
+        filters: list[dict[str, Any]] = [{"nationality": "vn"}]
+        text_filter = _text_filter(query, self.search_fields)
+        if text_filter:
+            filters.append(text_filter)
+        return {"$and": filters}
 
     def _kydao_id(self, url: str | None) -> str | None:
         if not url:
@@ -244,7 +252,7 @@ class PlayerRepository(MongoRepository):
 class TournamentRepository(MongoRepository):
     collection_name = "tournaments"
     search_fields = ("name", "status", "country", "location")
-    default_sort = ("created_date", -1)
+    default_sort = ("date", -1)
 
     @property
     def fallback_collection(self):
@@ -364,6 +372,47 @@ class GameRepository(MongoRepository):
         if sort_by:
             cursor = cursor.sort(sort_by, sort_dir)
         cursor = cursor.skip(skip).limit(limit)
+        documents = [document async for document in cursor]
+        total = await self.collection.count_documents(filter_)
+        return await self._enrich_many(documents), total
+
+    async def list_by_tournament(
+        self,
+        tournament_id: str,
+        *,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[dict[str, Any]], int]:
+        id_values = _id_values(tournament_id)
+        filter_ = {"$or": [{"tournament_id": {"$in": id_values}}, {"event_id": {"$in": id_values}}]}
+        return await self._list_by_filter(filter_, skip=skip, limit=limit)
+
+    async def list_by_player(
+        self,
+        player_id: str,
+        *,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[dict[str, Any]], int]:
+        id_values = _id_values(player_id)
+        filter_ = {
+            "$or": [
+                {"red_player_id": {"$in": id_values}},
+                {"red_id": {"$in": id_values}},
+                {"black_player_id": {"$in": id_values}},
+                {"black_id": {"$in": id_values}},
+            ]
+        }
+        return await self._list_by_filter(filter_, skip=skip, limit=limit)
+
+    async def _list_by_filter(
+        self,
+        filter_: dict[str, Any],
+        *,
+        skip: int,
+        limit: int,
+    ) -> tuple[list[dict[str, Any]], int]:
+        cursor = self.collection.find(filter_).sort("date", -1).skip(skip).limit(limit)
         documents = [document async for document in cursor]
         total = await self.collection.count_documents(filter_)
         return await self._enrich_many(documents), total

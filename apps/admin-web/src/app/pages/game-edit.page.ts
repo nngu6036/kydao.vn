@@ -72,11 +72,27 @@ const GAME_EDIT_TEMPLATE = `
             </select>
 
             <ng-template #textInput>
-              <input
-                *ngIf="field.type !== 'checkbox'"
-                [type]="inputType(field)"
-                [formControlName]="field.key"
-              />
+              <div *ngIf="field.type === 'date'; else standardTextInput" class="date-input-row">
+                <input
+                  type="text"
+                  [attr.placeholder]="inputPlaceholder(field)"
+                  [formControlName]="field.key"
+                />
+                <input
+                  class="date-picker-input"
+                  type="date"
+                  [value]="datePickerValue(field)"
+                  (change)="onDatePickerChange(field, $any($event.target).value)"
+                />
+              </div>
+              <ng-template #standardTextInput>
+                <input
+                  *ngIf="field.type !== 'checkbox'"
+                  [type]="inputType(field)"
+                  [attr.placeholder]="inputPlaceholder(field)"
+                  [formControlName]="field.key"
+                />
+              </ng-template>
             </ng-template>
 
             <input *ngIf="field.type === 'checkbox'" type="checkbox" [formControlName]="field.key" />

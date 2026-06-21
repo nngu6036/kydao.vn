@@ -105,7 +105,7 @@ export const ENTITY_CONFIGS: Record<EntityKind, EntityConfig> = {
     label: 'Kỳ thủ',
     singular: 'Kỳ thủ',
     description: 'Hồ sơ kỳ thủ và danh tính nguồn từ Kỳ Đạo.',
-    columns: ['name', 'kydao_id', 'title', 'location', 'initial_level', 'rating'],
+    columns: ['name', 'kydao_id', 'title', 'nationality', 'initial_level', 'elo'],
     fields: [
       { key: 'name', label: 'Tên' },
       { key: 'title', label: 'Danh hiệu' },

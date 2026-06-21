@@ -68,11 +68,27 @@ export const ENTITY_EDIT_TEMPLATE = `
             </select>
 
             <ng-template #textInput>
-              <input
-                *ngIf="field.type !== 'checkbox'"
-                [type]="inputType(field)"
-                [formControlName]="field.key"
-              />
+              <div *ngIf="field.type === 'date'; else standardTextInput" class="date-input-row">
+                <input
+                  type="text"
+                  [attr.placeholder]="inputPlaceholder(field)"
+                  [formControlName]="field.key"
+                />
+                <input
+                  class="date-picker-input"
+                  type="date"
+                  [value]="datePickerValue(field)"
+                  (change)="onDatePickerChange(field, $any($event.target).value)"
+                />
+              </div>
+              <ng-template #standardTextInput>
+                <input
+                  *ngIf="field.type !== 'checkbox'"
+                  [type]="inputType(field)"
+                  [attr.placeholder]="inputPlaceholder(field)"
+                  [formControlName]="field.key"
+                />
+              </ng-template>
             </ng-template>
 
             <input *ngIf="field.type === 'checkbox'" type="checkbox" [formControlName]="field.key" />
@@ -271,10 +287,41 @@ export abstract class EntityEditBasePage {
   }
 
   inputType(field: EntityField): string {
-    if (field.type === 'number' || field.type === 'date') {
+    if (field.type === 'number') {
       return field.type;
     }
     return 'text';
+  }
+
+  inputPlaceholder(field: EntityField): string | null {
+    if (field.type === 'date') {
+      return 'YYYY, MM/YYYY, or DD/MM/YYYY';
+    }
+    return null;
+  }
+
+  datePickerValue(field: EntityField): string {
+    if (field.type !== 'date') {
+      return '';
+    }
+
+    const value = this.form.controls[field.key]?.value;
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    const normalized = this.normalizeDateInput(value);
+    return typeof normalized === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : '';
+  }
+
+  onDatePickerChange(field: EntityField, value: string): void {
+    if (field.type !== 'date') {
+      return;
+    }
+
+    this.form.controls[field.key]?.setValue(value);
+    this.form.controls[field.key]?.markAsDirty();
+    this.form.controls[field.key]?.updateValueAndValidity();
   }
 
   protected afterFormBuilt(): void {
@@ -374,9 +421,76 @@ export abstract class EntityEditBasePage {
     for (const field of this.activeConfig?.fields ?? []) {
       const raw = value[field.key];
       const key = field.payloadKey ?? field.key;
-      payload[key] = raw === '' ? null : raw;
+      payload[key] = this.toPayloadValue(field, raw);
     }
     return payload;
+  }
+
+  private toPayloadValue(field: EntityField, raw: unknown): unknown {
+    if (raw === '') {
+      return null;
+    }
+    if (field.type === 'date') {
+      return this.normalizeDateInput(raw);
+    }
+    return raw;
+  }
+
+  private normalizeDateInput(raw: unknown): unknown {
+    if (typeof raw !== 'string') {
+      return raw;
+    }
+
+    const value = raw.trim();
+    if (!value) {
+      return null;
+    }
+
+    const yearOnly = value.match(/^(\d{4})$/);
+    if (yearOnly) {
+      return `${yearOnly[1]}-01-01`;
+    }
+
+    const yearMonth = value.match(/^(\d{4})[-/](\d{1,2})$/);
+    if (yearMonth) {
+      return this.formatDateParts(yearMonth[1], yearMonth[2], '1') ?? value;
+    }
+
+    const monthYear = value.match(/^(\d{1,2})[-/](\d{4})$/);
+    if (monthYear) {
+      return this.formatDateParts(monthYear[2], monthYear[1], '1') ?? value;
+    }
+
+    const yearMonthDay = value.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (yearMonthDay) {
+      return this.formatDateParts(yearMonthDay[1], yearMonthDay[2], yearMonthDay[3]) ?? value;
+    }
+
+    const dayMonthYear = value.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (dayMonthYear) {
+      return this.formatDateParts(dayMonthYear[3], dayMonthYear[2], dayMonthYear[1]) ?? value;
+    }
+
+    return value;
+  }
+
+  private formatDateParts(yearValue: string, monthValue: string, dayValue: string): string | null {
+    const year = Number.parseInt(yearValue, 10);
+    const month = Number.parseInt(monthValue, 10);
+    const day = Number.parseInt(dayValue, 10);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+      return null;
+    }
+    if (year < 1000 || year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) {
+      return null;
+    }
+
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+
+    return `${yearValue.padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
   private recordId(item: Record<string, unknown>): string | undefined {

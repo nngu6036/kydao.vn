@@ -24,6 +24,10 @@ celery_app.conf.update(
             "task": "app.tasks.update_tournament_participants",
             "schedule": crontab(hour=0, minute=0),
         },
+        "update-tournament-games": {
+            "task": "app.tasks.update_tournament_games",
+            "schedule": crontab(hour=0, minute=0),
+        },
         "update-vn-player-elo": {
             "task": "app.tasks.update_vn_player_elo",
             "schedule": crontab(hour=0, minute=0),

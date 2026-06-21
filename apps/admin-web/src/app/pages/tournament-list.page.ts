@@ -13,7 +13,7 @@ export class TournamentListPage extends EntityListBasePage {
     super(inject(AdminContentService), 'tournaments', [
       { key: 'name', label: 'Tên giải đấu', widthPercent: 64 },
       { key: 'country', label: 'Quốc gia', widthPercent: 18 },
-      { key: 'participants', label: 'Số kỳ thủ', widthPercent: 18 },
-    ]);
+      { key: 'date', label: 'Ngày', widthPercent: 18 },
+    ], { column: 'date', direction: 'desc' });
   }
 }

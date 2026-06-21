@@ -103,13 +103,17 @@ export class ContentService {
   }
 
   getGamesByTournamentId(tournamentId: string | null): Observable<GameItem[]> {
-    return this.games$.pipe(map(items => items.filter(item => item.tournament_id === tournamentId)));
+    if (!tournamentId) {
+      return this.games$.pipe(map(() => []));
+    }
+    return this.fetchGames(`tournaments/${tournamentId}/games`);
   }
 
   getGamesByPlayerId(playerId: string | null): Observable<GameItem[]> {
-    return this.games$.pipe(
-      map(items => items.filter(item => item.red_id === playerId || item.black_id === playerId))
-    );
+    if (!playerId) {
+      return this.games$.pipe(map(() => []));
+    }
+    return this.fetchGames(`players/${playerId}/games`);
   }
 
   getGamesByOpening(openingName: string | null): Observable<GameItem[]> {
@@ -122,6 +126,12 @@ export class ContentService {
     return this.http.get<PageResponse<T>>(`${this.baseUrl}/${kind}`, {
       params: { page: 1, page_size: 200 },
     }).pipe(map(page => page.items));
+  }
+
+  private fetchGames(path: string): Observable<GameItem[]> {
+    return this.http.get<PageResponse<ApiGame>>(`${this.baseUrl}/${path}`, {
+      params: { page: 1, page_size: 200 },
+    }).pipe(map(page => page.items.map(item => this.toGame(item))));
   }
 
   private toPlayer(item: ApiPlayer): PlayerItem {

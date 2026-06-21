@@ -11,10 +11,10 @@ import { ENTITY_LIST_TEMPLATE, EntityListBasePage } from './entity-list.base';
 export class PlayerListPage extends EntityListBasePage {
   constructor() {
     super(inject(AdminContentService), 'players', [
-      { key: 'name', label: 'Tên kỳ thủ', widthPercent: 38 },
-      { key: 'title', label: 'Danh hiệu', widthPercent: 22 },
-      { key: 'location', label: 'Địa phương', widthPercent: 18 },
-      { key: 'rating', label: 'ELO', widthPercent: 8 },
+      { key: 'name', label: 'Tên kỳ thủ', widthPercent: 42 },
+      { key: 'title', label: 'Danh hiệu', widthPercent: 20 },
+      { key: 'nationality', label: 'Quốc tịch', widthPercent: 18 },
+      { key: 'elo', label: 'ELO', widthPercent: 10 },
     ]);
   }
 }
