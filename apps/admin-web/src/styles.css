@@ -558,6 +558,33 @@ h2 {
   color: #b42318;
 }
 
+.inline-edit-cell {
+  display: flex;
+  align-items: center;
+  cursor: text;
+}
+
+.inline-editing-cell {
+  background: #f7f9ff;
+}
+
+.inline-edit-control {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.inline-edit-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(49, 87, 213, 0.12);
+}
+
 .data-row-head {
   background: var(--panel-2);
   color: var(--muted);

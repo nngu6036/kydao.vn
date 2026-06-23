@@ -42,6 +42,6 @@ export class AuthService {
   }
   logout() {
     this.clearSession();
-    window.location.href = '/login';
+    window.location.href = new URL('login', document.baseURI).toString();
   }
 }

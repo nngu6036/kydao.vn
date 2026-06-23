@@ -47,10 +47,16 @@ import { ContentService } from '../core/content.service';
                       <tr *ngFor="let game of games$ | async; let i = index">
                         <td>{{ i + 1 }}</td>
                         <td>
-                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
+                          <ng-container *ngIf="game.red_id !== player.id; else currentRedPlayer">
+                            <a class="tournament-table-link player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
+                          </ng-container>
+                          <ng-template #currentRedPlayer>{{ game.red_name }}</ng-template>
                         </td>
                         <td>
-                          <a class="tournament-table-link player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
+                          <ng-container *ngIf="game.black_id !== player.id; else currentBlackPlayer">
+                            <a class="tournament-table-link player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
+                          </ng-container>
+                          <ng-template #currentBlackPlayer>{{ game.black_name }}</ng-template>
                         </td>
                         <td>
                           <a class="tournament-table-link player-link" [routerLink]="['/games', game.id]">{{ game.result }}</a>

@@ -4,6 +4,8 @@ import { DashboardPage } from './pages/dashboard.page';
 import { GameEditPage } from './pages/game-edit.page';
 import { GameListPage } from './pages/game-list.page';
 import { LoginPage } from './pages/login.page';
+import { OpeningEditPage } from './pages/opening-edit.page';
+import { OpeningListPage } from './pages/opening-list.page';
 import { PlayerEditPage } from './pages/player-edit.page';
 import { PlayerListPage } from './pages/player-list.page';
 import { TournamentEditPage } from './pages/tournament-edit.page';
@@ -21,6 +23,9 @@ export const routes: Routes = [
   { path: 'players', component: PlayerListPage, canActivate: [authGuard] },
   { path: 'players/new', component: PlayerEditPage, canActivate: [authGuard] },
   { path: 'players/:id/edit', component: PlayerEditPage, canActivate: [authGuard] },
+  { path: 'openings', component: OpeningListPage, canActivate: [authGuard] },
+  { path: 'openings/new', component: OpeningEditPage, canActivate: [authGuard] },
+  { path: 'openings/:id/edit', component: OpeningEditPage, canActivate: [authGuard] },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },
 ];

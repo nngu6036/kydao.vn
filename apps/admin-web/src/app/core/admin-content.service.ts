@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from './environment';
 
-export type EntityKind = 'tournaments' | 'games' | 'players';
+export type EntityKind = 'tournaments' | 'games' | 'players' | 'openings';
 
 export interface PageResponse<T = Record<string, unknown>> {
   items: T[];
@@ -25,7 +25,7 @@ export interface EntityField {
   key: string;
   label: string;
   type?: 'text' | 'number' | 'date' | 'textarea' | 'checkbox' | 'select' | 'entity-search';
-  searchKind?: Extract<EntityKind, 'players' | 'tournaments'>;
+  searchKind?: Extract<EntityKind, 'players' | 'tournaments' | 'openings'>;
   payloadKey?: string;
   options?: Array<{ value: string; label: string }>;
 }
@@ -142,6 +142,18 @@ export const ENTITY_CONFIGS: Record<EntityKind, EntityConfig> = {
       },
     ],
   },
+  openings: {
+    kind: 'openings',
+    label: 'Khai cuộc',
+    singular: 'Khai cuộc',
+    description: 'Danh sách khai cuộc được lưu trong cơ sở dữ liệu.',
+    columns: ['name', 'code', 'games'],
+    fields: [
+      { key: 'name', label: 'Tên' },
+      { key: 'description', label: 'Mô tả' },
+      { key: 'move_list', label: 'Danh sách nước đi', type: 'textarea' },
+    ],
+  },
 };
 
 @Injectable({ providedIn: 'root' })
@@ -156,18 +168,24 @@ export class AdminContentService {
     pageSize = 25,
     sortBy?: string,
     sortDir: 'asc' | 'desc' = 'asc',
+    filters: Record<string, string> = {},
   ): Observable<PageResponse> {
     const params: Record<string, string | number> = { query, page, page_size: pageSize };
     if (sortBy) {
       params['sort_by'] = sortBy;
       params['sort_dir'] = sortDir;
     }
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) {
+        params[key] = value;
+      }
+    }
     return this.http.get<PageResponse>(`${this.baseUrl}/admin/${kind}`, {
       params,
     });
   }
 
-  searchByName(kind: Extract<EntityKind, 'players' | 'tournaments'>, name: string): Observable<EntitySearchOption[]> {
+  searchByName(kind: Extract<EntityKind, 'players' | 'tournaments' | 'openings'>, name: string): Observable<EntitySearchOption[]> {
     return this.http.get<EntitySearchOption[]>(`${this.baseUrl}/admin/${kind}/search`, {
       params: { name, limit: 10 },
     });

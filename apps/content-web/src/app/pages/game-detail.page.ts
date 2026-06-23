@@ -95,31 +95,31 @@ import { ContentService } from '../core/content.service';
                 <div class="game-detail-info-column">
                   <div class="game-detail-info-list">
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Tournament name:</span>
+                      <span class="game-detail-info-label">Giải đấu:</span>
                       <a class="game-detail-info-value player-link" [routerLink]="['/tournaments', game.tournament_id]">{{ game.tournament_name }}</a>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Red player name:</span>
+                      <span class="game-detail-info-label">Kỳ thủ đỏ:</span>
                       <a class="game-detail-info-value player-link" [routerLink]="['/players', game.red_id]">{{ game.red_name }}</a>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Black player name:</span>
+                      <span class="game-detail-info-label">Kỳ thủ đen:</span>
                       <a class="game-detail-info-value player-link" [routerLink]="['/players', game.black_id]">{{ game.black_name }}</a>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Result:</span>
+                      <span class="game-detail-info-label">Kết quả:</span>
                       <span class="game-detail-info-value">{{ game.result }}</span>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Date:</span>
+                      <span class="game-detail-info-label">Ngày:</span>
                       <span class="game-detail-info-value">{{ game.date }}</span>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Move number:</span>
+                      <span class="game-detail-info-label">Số nước:</span>
                       <span class="game-detail-info-value">{{ game.moves }}</span>
                     </div>
                     <div class="game-detail-info-row">
-                      <span class="game-detail-info-label">Openning:</span>
+                      <span class="game-detail-info-label">Khai cuộc:</span>
                       <a class="game-detail-info-value player-link" [routerLink]="['/openings', game.opening_id]">{{ game.opening }}</a>
                     </div>
                   </div>

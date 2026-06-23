@@ -112,6 +112,7 @@ export abstract class EntityListBasePage {
   private readonly pageSubject = new BehaviorSubject(1);
   private readonly sortSubject = new BehaviorSubject<SortState>({ direction: 'asc' });
   private readonly refreshSubject = new BehaviorSubject(0);
+  private readonly filtersSubject = new BehaviorSubject<Record<string, string>>({});
   readonly pageSize = 25;
 
   readonly config: EntityConfig;
@@ -126,9 +127,9 @@ export abstract class EntityListBasePage {
     tap(() => this.pageSubject.next(1))
   );
 
-  readonly vm$ = combineLatest([this.query$, this.pageSubject, this.sortSubject, this.refreshSubject]).pipe(
-    switchMap(([query, page, sort]) =>
-      this.api.list(this.config.kind, query, page, this.pageSize, sort.column, sort.direction).pipe(
+  readonly vm$ = combineLatest([this.query$, this.pageSubject, this.sortSubject, this.refreshSubject, this.filtersSubject]).pipe(
+    switchMap(([query, page, sort, , filters]) =>
+      this.api.list(this.config.kind, query, page, this.pageSize, sort.column, sort.direction, filters).pipe(
         map((response) => ({ config: this.config, page: this.normalizePage(response, page), sort })),
         catchError(() => of({ config: this.config, page: this.emptyPage(page), sort }))
       )
@@ -145,6 +146,13 @@ export abstract class EntityListBasePage {
     this.columns = columns;
     this.sortSubject.next(initialSort ?? this.defaultSort());
     this.gridTemplateColumns = this.toGridTemplateColumns(columns);
+  }
+
+  protected setListFilters(filters: Record<string, string>): void {
+    this.filtersSubject.next(filters);
+    if (this.pageSubject.value !== 1) {
+      this.pageSubject.next(1);
+    }
   }
 
   goToPage(requestedPage: number, pages: number): void {
@@ -200,6 +208,12 @@ export abstract class EntityListBasePage {
     if (column.key === 'country' || column.key === 'nationality') {
       return this.displayCountry(value);
     }
+    if (column.key === 'initial_level') {
+      return this.displayInitialLevel(value);
+    }
+    if (column.key === 'sexuality') {
+      return this.displaySexuality(value);
+    }
     return this.display(value);
   }
 
@@ -222,6 +236,31 @@ export abstract class EntityListBasePage {
     };
     if (typeof value === 'string' && resultLabels[value]) {
       return resultLabels[value];
+    }
+    return this.display(value);
+  }
+
+  private displayInitialLevel(value: unknown): string {
+    const levelLabels: Record<string, string> = {
+      a2_level: 'Kỳ thủ A2',
+      a1_level: 'Kỳ thủ A1',
+      national_master: 'Kiện tướng quốc gia',
+      international_master: 'Quốc tế đại sư',
+      international_grand_master: 'Đặc cấp Quốc tế đại sư',
+    };
+    if (typeof value === 'string' && levelLabels[value]) {
+      return levelLabels[value];
+    }
+    return this.display(value);
+  }
+
+  private displaySexuality(value: unknown): string {
+    const sexualityLabels: Record<string, string> = {
+      male: 'Nam',
+      female: 'Nữ',
+    };
+    if (typeof value === 'string' && sexualityLabels[value]) {
+      return sexualityLabels[value];
     }
     return this.display(value);
   }

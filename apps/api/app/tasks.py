@@ -131,6 +131,15 @@ def _is_vn_player(player: Player) -> bool:
     return isinstance(nationality, str) and nationality.casefold() == "vn"
 
 
+def _is_male_player(player: Player) -> bool:
+    sexuality = player.sexuality
+    return isinstance(sexuality, str) and sexuality.casefold() == "male"
+
+
+def _is_vn_male_player(player: Player) -> bool:
+    return _is_vn_player(player) and _is_male_player(player)
+
+
 def _red_score(result: Any) -> float | None:
     if result in ("win", "W"):
         return 1.0
@@ -271,10 +280,10 @@ async def _update_tournament_games() -> dict[str, int | str]:
 
 async def _load_players(db: AsyncIOMotorDatabase) -> dict[str, Player]:
     players: dict[str, Player] = {}
-    async for document in db["players"].find({}):
+    async for document in db["players"].find({"sexuality": "male"}):
         player = _player_from_document(document)
         player_id = _player_key(player.id)
-        if not player_id:
+        if not player_id or not _is_male_player(player):
             continue
         player.starting_rating = player.rating if isinstance(player.rating, int) else 0
         player.elo = float(_initial_rating(player))
@@ -302,6 +311,7 @@ async def _load_tournaments(db: AsyncIOMotorDatabase) -> dict[str, Tournament]:
 async def _load_elo_games(
     db: AsyncIOMotorDatabase,
     tournaments: dict[str, Tournament],
+    player_keys: set[str],
 ) -> list[Game]:
     tournament_ids = [ObjectId(id) if ObjectId.is_valid(id) else id for id in tournaments]
     tournament_ids.extend(tournaments.keys())
@@ -320,7 +330,15 @@ async def _load_elo_games(
         black_id = _player_key(game.black_player_id or game.black_id)
         tournament_id = _player_key(game.tournament_id)
         score = _red_score(game.result)
-        if not game_date or not red_id or not black_id or not tournament_id or score is None:
+        if (
+            not game_date
+            or not red_id
+            or not black_id
+            or not tournament_id
+            or score is None
+            or red_id not in player_keys
+            or black_id not in player_keys
+        ):
             continue
         game.parsed_date = game_date
         game.red_player_key = red_id
@@ -385,7 +403,7 @@ async def _update_vn_player_elo() -> dict[str, int | str]:
         db = client[settings.mongodb_database]
         players = await _load_players(db)
         tournaments = await _load_tournaments(db)
-        games = await _load_elo_games(db, tournaments)
+        games = await _load_elo_games(db, tournaments, set(players))
         now = datetime.now(UTC)
 
         for game in games:
@@ -394,7 +412,7 @@ async def _update_vn_player_elo() -> dict[str, int | str]:
         checked = 0
         updated = 0
         for player in sorted(players.values(), key=lambda item: -float(item.elo or 0)):
-            if not _is_vn_player(player):
+            if not _is_vn_male_player(player):
                 continue
 
             checked += 1
@@ -444,7 +462,7 @@ def update_tournament_games() -> dict[str, int | str]:
 
 @celery_app.task(name="app.tasks.update_vn_player_elo")
 def update_vn_player_elo() -> dict[str, int | str]:
-    logger.info("Updating VN player Elo ratings")
+    logger.info("Updating VN male player Elo ratings")
     result = asyncio.run(_update_vn_player_elo())
-    logger.info("Updated VN player Elo ratings: %s", result)
+    logger.info("Updated VN male player Elo ratings: %s", result)
     return result

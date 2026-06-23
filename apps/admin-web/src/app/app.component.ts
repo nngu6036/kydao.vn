@@ -21,6 +21,7 @@ import { AuthService } from './core/auth.service';
           <a routerLink="/tournaments" routerLinkActive="active">Giải đấu</a>
           <a routerLink="/games" routerLinkActive="active">Ván đấu</a>
           <a routerLink="/players" routerLinkActive="active">Kỳ thủ</a>
+          <a routerLink="/openings" routerLinkActive="active">Khai cuộc</a>
         </nav>
 
         <button class="logout-action" type="button" (click)="auth.logout()">Đăng xuất</button>

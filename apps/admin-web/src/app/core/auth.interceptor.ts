@@ -12,7 +12,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if ((error.status === 401 || error.status === 403) && !req.url.includes('/auth/login')) {
         auth.clearSession();
-        window.location.href = '/login';
+        window.location.href = new URL('login', document.baseURI).toString();
       }
       return throwError(() => error);
     })

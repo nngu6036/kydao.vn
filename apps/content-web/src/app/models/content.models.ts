@@ -37,7 +37,10 @@ export interface GameItem {
 
 export interface OpeningItem {
   id: string;
+  parent_id: string;
   name: string;
+  code: string;
+  description: string;
   games: number;
   winRate: { red: number; draw: number; black: number };
 }

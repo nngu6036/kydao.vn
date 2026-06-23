@@ -927,6 +927,49 @@ app-ranking-block {
   color: #6B6B6B;
 }
 
+.opening-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.opening-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  color: #8B3A3A;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.opening-tree-row:hover {
+  color: #6F2626;
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
+.opening-tree-connector {
+  flex: 0 0 0.75rem;
+  height: 1px;
+  background: #D4CBC0;
+}
+
+.opening-tree-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opening-tree-code {
+  flex: 0 0 auto;
+  color: #6B6B6B;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
 .opening-winrate {
   display: flex;
   flex-direction: column;

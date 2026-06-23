@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AsyncPipe, DecimalPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, Location, NgClass, NgFor, NgIf } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -13,6 +13,11 @@ interface PagedList<T> {
   total: number;
   page: number;
   pages: number;
+}
+
+interface OpeningTreeNode {
+  opening: OpeningItem;
+  depth: number;
 }
 
 @Component({
@@ -136,25 +141,17 @@ interface PagedList<T> {
                   </table>
                 </div>
 
-                <div class="opening-list" *ngIf="kind === 'openings' && openingsPage$ | async as page">
-                  <article class="opening-card" *ngFor="let opening of page.items" [routerLink]="['/openings', opening.id]">
-                    <div class="opening-info">
-                      <div class="opening-name">{{ opening.name }}</div>
-                      <div class="opening-stats">{{ opening.games | number }} ván cờ</div>
-                    </div>
-                    <div class="opening-winrate">
-                      <div class="winrate-bars">
-                        <div class="winrate-bar red" [style.width.%]="opening.winRate.red"></div>
-                        <div class="winrate-bar draw" [style.width.%]="opening.winRate.draw"></div>
-                        <div class="winrate-bar black" [style.width.%]="opening.winRate.black"></div>
-                      </div>
-                      <div class="winrate-labels">
-                        <span class="label red">Đỏ {{ opening.winRate.red }}%</span>
-                        <span class="label draw">Hòa {{ opening.winRate.draw }}%</span>
-                        <span class="label black">Đen {{ opening.winRate.black }}%</span>
-                      </div>
-                    </div>
-                  </article>
+                <div class="opening-tree" *ngIf="kind === 'openings' && openingsTree$ | async as nodes">
+                  <a
+                    class="opening-tree-row"
+                    *ngFor="let node of nodes"
+                    [routerLink]="['/openings', node.opening.id]"
+                    [style.padding-left.px]="node.depth * 24"
+                  >
+                    <span class="opening-tree-connector" aria-hidden="true"></span>
+                    <span class="opening-tree-name">{{ node.opening.name }}</span>
+                    <span class="opening-tree-code" *ngIf="node.opening.code">{{ node.opening.code }}</span>
+                  </a>
                 </div>
 
                 <div class="ranking-list" *ngIf="kind === 'rankings' && rankingsPage$ | async as page">
@@ -173,7 +170,7 @@ interface PagedList<T> {
                   </article>
                 </div>
 
-                <div class="list-page-pagination list-page-pagination-bottom" *ngIf="activePage$ | async as page">
+                <div class="list-page-pagination list-page-pagination-bottom" *ngIf="kind !== 'openings' && activePage$ | async as page">
                   <ngb-pagination
                     [collectionSize]="page.total"
                     [page]="page.page"
@@ -207,7 +204,7 @@ export class ListPage {
   readonly title = this.route.snapshot.data['title'] || 'Danh sách';
 
   private readonly tournaments$ = this.content.tournaments$.pipe(
-    map(items => [...items].sort((a, b) => this.parseDisplayDate(b.date) - this.parseDisplayDate(a.date)))
+    map(items => [...items].sort((a, b) => this.compareLatestDates(a.date, b.date)))
   );
   private readonly players$ = combineLatest([this.content.players$, this.playerNationalityFilterSubject]).pipe(
     map(([items, nationality]) =>
@@ -217,10 +214,10 @@ export class ListPage {
     )
   );
   private readonly games$ = this.content.games$.pipe(
-    map(items => [...items].sort((a, b) => this.parseDisplayDate(a.date) - this.parseDisplayDate(b.date)))
+    map(items => [...items].sort((a, b) => this.compareLatestDates(a.date, b.date)))
   );
   private readonly openings$ = this.content.openings$.pipe(
-    map(items => [...items].sort((a, b) => b.games - a.games))
+    map(items => [...items].sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })))
   );
   private readonly rankings$ = this.content.rankings$;
 
@@ -228,6 +225,7 @@ export class ListPage {
   readonly playersPage$ = this.paginate(this.players$);
   readonly gamesPage$ = this.paginate(this.games$);
   readonly openingsPage$ = this.paginate(this.openings$);
+  readonly openingsTree$ = this.openings$.pipe(map(items => this.toOpeningTree(items)));
   readonly rankingsPage$ = this.paginate(this.rankings$);
   readonly activePage$ = this.activePage();
 
@@ -288,20 +286,105 @@ export class ListPage {
     return this.tournamentsPage$;
   }
 
-  private parseDisplayDate(value: string): number {
-    const dateText = value.trim();
-    const isoMatch = dateText.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-    if (isoMatch) {
-      const [, year, month, day] = isoMatch.map(part => Number.parseInt(part, 10));
-      return new Date(year, month - 1, day).getTime();
+  private toOpeningTree(items: OpeningItem[]): OpeningTreeNode[] {
+    const byId = new Map(items.map(item => [item.id, item]));
+    const childrenByParent = new Map<string, OpeningItem[]>();
+
+    for (const item of items) {
+      const parentId = item.parent_id && byId.has(item.parent_id) ? item.parent_id : '';
+      const children = childrenByParent.get(parentId) ?? [];
+      children.push(item);
+      childrenByParent.set(parentId, children);
     }
 
-    const displayMatch = dateText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (displayMatch) {
-      const [, day, month, year] = displayMatch.map(part => Number.parseInt(part, 10));
-      return new Date(year, month - 1, day).getTime();
+    for (const children of childrenByParent.values()) {
+      children.sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }));
     }
 
-    return 0;
+    const result: OpeningTreeNode[] = [];
+    const visit = (opening: OpeningItem, depth: number, ancestors: Set<string>) => {
+      if (ancestors.has(opening.id)) {
+        return;
+      }
+      result.push({ opening, depth });
+      const nextAncestors = new Set(ancestors);
+      nextAncestors.add(opening.id);
+      for (const child of childrenByParent.get(opening.id) ?? []) {
+        visit(child, depth + 1, nextAncestors);
+      }
+    };
+
+    for (const root of childrenByParent.get('') ?? []) {
+      visit(root, 0, new Set());
+    }
+
+    return result;
+  }
+
+  private compareLatestDates(a: string, b: string): number {
+    const aTime = this.parseTournamentDate(a);
+    const bTime = this.parseTournamentDate(b);
+
+    if (aTime === null && bTime === null) {
+      return 0;
+    }
+    if (aTime === null) {
+      return 1;
+    }
+    if (bTime === null) {
+      return -1;
+    }
+    return bTime - aTime;
+  }
+
+  private parseTournamentDate(value: string): number | null {
+    const dateText = this.datePrefix(value.trim());
+    const fullIsoMatch = dateText.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (fullIsoMatch) {
+      const [, year, month, day] = fullIsoMatch.map(part => Number.parseInt(part, 10));
+      return this.validDateTime(year, month, day);
+    }
+
+    const fullDisplayMatch = dateText.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (fullDisplayMatch) {
+      const [, day, month, year] = fullDisplayMatch.map(part => Number.parseInt(part, 10));
+      return this.validDateTime(year, month, day);
+    }
+
+    const yearMonthMatch = dateText.match(/^(\d{4})[-/](\d{1,2})$/);
+    if (yearMonthMatch) {
+      const [, year, month] = yearMonthMatch.map(part => Number.parseInt(part, 10));
+      return this.validDateTime(year, month, 1);
+    }
+
+    const monthYearMatch = dateText.match(/^(\d{1,2})[-/](\d{4})$/);
+    if (monthYearMatch) {
+      const [, month, year] = monthYearMatch.map(part => Number.parseInt(part, 10));
+      return this.validDateTime(year, month, 1);
+    }
+
+    const yearOnlyMatch = dateText.match(/^\d{4}$/);
+    if (yearOnlyMatch) {
+      return new Date(Number.parseInt(dateText, 10), 0, 1).getTime();
+    }
+
+    return null;
+  }
+
+  private validDateTime(year: number, month: number, day: number): number | null {
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+    return date.getTime();
+  }
+
+  private datePrefix(value: string): string {
+    const rangeStart = value.split(/\s+-\s+/, 1)[0].trim();
+    return (
+      rangeStart.match(/^(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})/)?.[1] ??
+      rangeStart.match(/^(\d{4}[-/]\d{1,2}|\d{1,2}[-/]\d{4})/)?.[1] ??
+      rangeStart
+    );
   }
 }

@@ -58,6 +58,53 @@ def _sort_public_items(items: list[dict[str, Any]], sort_by: str, sort_dir: int)
     return sorted(items, key=sort_value, reverse=sort_dir < 0)
 
 
+def _date_sort_key(item: dict[str, Any], sort_dir: int) -> tuple[int, float, str]:
+    parsed = _parse_partial_date(item.get("date"))
+    if parsed is None:
+        return (1, 0, str(item.get("name") or item.get("id") or "").casefold())
+
+    timestamp = parsed.timestamp()
+    return (0, -timestamp if sort_dir < 0 else timestamp, str(item.get("name") or item.get("id") or "").casefold())
+
+
+def _parse_partial_date(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if not isinstance(value, str) or not value.strip():
+        return None
+
+    date_text = _date_prefix(value.strip())
+    for date_format in ("%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(date_text, date_format)
+        except ValueError:
+            continue
+
+    for date_format in ("%Y-%m", "%Y/%m", "%m/%Y", "%m-%Y"):
+        try:
+            return datetime.strptime(date_text, date_format)
+        except ValueError:
+            continue
+
+    if re.fullmatch(r"\d{4}", date_text):
+        return datetime(int(date_text), 1, 1)
+
+    return None
+
+
+def _date_prefix(value: str) -> str:
+    value = re.split(r"\s+-\s+", value, maxsplit=1)[0].strip()
+    full_date = re.match(r"^(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})", value)
+    if full_date:
+        return full_date.group(1)
+
+    month_date = re.match(r"^(\d{4}[-/]\d{1,2}|\d{1,2}[-/]\d{4})", value)
+    if month_date:
+        return month_date.group(1)
+
+    return value
+
+
 def _as_object_id(value: Any) -> ObjectId | None:
     if isinstance(value, ObjectId):
         return value
@@ -101,8 +148,9 @@ class MongoRepository:
         limit: int = 50,
         sort_by: str | None = None,
         sort_dir: int = 1,
+        filter_: dict[str, Any] | None = None,
     ) -> tuple[list[dict[str, Any]], int]:
-        filter_ = _text_filter(query, self.search_fields)
+        filter_ = filter_ if filter_ is not None else _text_filter(query, self.search_fields)
         cursor = self.collection.find(filter_)
         sort = (sort_by, sort_dir) if sort_by else self.default_sort
         if sort:
@@ -175,9 +223,11 @@ class PlayerRepository(MongoRepository):
         limit: int = 50,
         sort_by: str | None = None,
         sort_dir: int = 1,
+        nationality: str | None = None,
+        sexuality: str | None = None,
     ) -> tuple[list[dict[str, Any]], int]:
+        filter_ = self._player_filter(query, nationality=nationality, sexuality=sexuality)
         if sort_by in self.computed_sort_fields:
-            filter_ = _text_filter(query, self.search_fields)
             cursor = self.collection.find(filter_)
             items = [self._map_player(_public_doc(document)) async for document in cursor]
             total = len(items)
@@ -185,11 +235,12 @@ class PlayerRepository(MongoRepository):
             return items[skip : skip + limit], total
 
         items, total = await super().list(
-            query=query,
+            query="",
             skip=skip,
             limit=limit,
             sort_by=sort_by,
             sort_dir=sort_dir,
+            filter_=filter_,
         )
         return [self._map_player(item) for item in items], total
 
@@ -251,11 +302,30 @@ class PlayerRepository(MongoRepository):
         return item
 
     def _vn_player_filter(self, query: str) -> dict[str, Any]:
-        filters: list[dict[str, Any]] = [{"nationality": "vn"}]
+        filters: list[dict[str, Any]] = [{"nationality": "vn"}, {"sexuality": "male"}]
         text_filter = _text_filter(query, self.search_fields)
         if text_filter:
             filters.append(text_filter)
         return {"$and": filters}
+
+    def _player_filter(
+        self,
+        query: str,
+        *,
+        nationality: str | None = None,
+        sexuality: str | None = None,
+    ) -> dict[str, Any]:
+        filters: list[dict[str, Any]] = []
+        text_filter = _text_filter(query, self.search_fields)
+        if text_filter:
+            filters.append(text_filter)
+        if nationality:
+            filters.append({"nationality": nationality})
+        if sexuality:
+            filters.append({"sexuality": sexuality})
+        if not filters:
+            return {}
+        return filters[0] if len(filters) == 1 else {"$and": filters}
 
     def _elo_ranking_sort_key(self, item: dict[str, Any]) -> tuple[int, float, str]:
         elo = item.get("elo")
@@ -291,24 +361,22 @@ class TournamentRepository(MongoRepository):
         sort_by: str | None = None,
         sort_dir: int = 1,
     ) -> tuple[list[dict[str, Any]], int]:
-        if not await self._uses_fallback():
-            return await super().list(
-                query=query,
-                skip=skip,
-                limit=limit,
-                sort_by=sort_by,
-                sort_dir=sort_dir,
-            )
+        collection = self.fallback_collection if await self._uses_fallback() else self.collection
+        search_fields = ("name",) if collection is self.fallback_collection else self.search_fields
+        filter_ = _text_filter(query, search_fields)
 
-        filter_ = _text_filter(query, ("name",))
-        sort = (sort_by, sort_dir) if sort_by else self.default_sort
-        cursor = self.fallback_collection.find(filter_)
-        if sort:
-            cursor = cursor.sort(*sort)
-        cursor = cursor.skip(skip).limit(limit)
+        if sort_by and sort_by != "date":
+            cursor = collection.find(filter_).sort(sort_by, sort_dir).skip(skip).limit(limit)
+            items = [_public_doc(document) async for document in cursor]
+            total = await collection.count_documents(filter_)
+            return items, total
+
+        cursor = collection.find(filter_)
         items = [_public_doc(document) async for document in cursor]
-        total = await self.fallback_collection.count_documents(filter_)
-        return items, total
+        total = len(items)
+        effective_sort_dir = sort_dir if sort_by == "date" else self.default_sort[1]
+        items = sorted(items, key=lambda item: _date_sort_key(item, effective_sort_dir))
+        return items[skip : skip + limit], total
 
     async def get(self, id: str) -> dict[str, Any] | None:
         document = await self.collection.find_one(_object_id_filter(id))
@@ -367,9 +435,45 @@ class TournamentRepository(MongoRepository):
         return fallback_result.deleted_count > 0
 
 
+class OpeningRepository(MongoRepository):
+    collection_name = "openings"
+    search_fields = ("name", "code", "description")
+    default_sort = ("name", 1)
+
+    async def get(self, id: str) -> dict[str, Any] | None:
+        item = await super().get(id)
+        if not item:
+            return None
+        return await self._with_parent_name(item)
+
+    async def search_by_name(self, name: str, limit: int = 10) -> list[dict[str, Any]]:
+        name = name.strip()
+        if not name:
+            return []
+
+        safe_limit = min(max(limit, 1), 10)
+        cursor = (
+            self.collection.find({"name": {"$regex": re.escape(name), "$options": "i"}})
+            .sort("name", 1)
+            .limit(safe_limit)
+        )
+        return [_public_doc(document) async for document in cursor]
+
+    async def _with_parent_name(self, item: dict[str, Any]) -> dict[str, Any]:
+        parent_id = item.get("parent_id")
+        if not parent_id:
+            return item
+
+        parent = await self.collection.find_one(_object_id_filter(str(parent_id)), {"name": 1})
+        if parent and parent.get("name"):
+            item["parent_name"] = parent["name"]
+        return item
+
+
 class GameRepository(MongoRepository):
     collection_name = "games"
     search_fields = ("url", "result")
+    default_sort = ("date", -1)
     computed_sort_fields = ("red_name", "black_name", "tournament_name", "moves")
 
     async def list(
@@ -388,6 +492,14 @@ class GameRepository(MongoRepository):
             items = await self._enrich_many(documents)
             total = len(items)
             items = _sort_public_items(items, sort_by, sort_dir)
+            return items[skip : skip + limit], total
+
+        if not sort_by or sort_by == "date":
+            documents = [document async for document in cursor]
+            items = await self._enrich_many(documents)
+            total = len(items)
+            effective_sort_dir = sort_dir if sort_by == "date" else self.default_sort[1]
+            items = sorted(items, key=lambda item: _date_sort_key(item, effective_sort_dir))
             return items[skip : skip + limit], total
 
         if sort_by:
@@ -433,10 +545,12 @@ class GameRepository(MongoRepository):
         skip: int,
         limit: int,
     ) -> tuple[list[dict[str, Any]], int]:
-        cursor = self.collection.find(filter_).sort("date", -1).skip(skip).limit(limit)
+        cursor = self.collection.find(filter_)
         documents = [document async for document in cursor]
-        total = await self.collection.count_documents(filter_)
-        return await self._enrich_many(documents), total
+        items = await self._enrich_many(documents)
+        total = len(items)
+        items = sorted(items, key=lambda item: _date_sort_key(item, -1))
+        return items[skip : skip + limit], total
 
     async def get(self, id: str) -> dict[str, Any] | None:
         document = await self.collection.find_one(_object_id_filter(id))

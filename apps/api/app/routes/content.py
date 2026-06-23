@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.db import get_database
-from app.models import Game, Page, Player, Tournament
-from app.repositories import GameRepository, PlayerRepository, TournamentRepository
+from app.models import Game, Opening, Page, Player, Tournament
+from app.repositories import GameRepository, OpeningRepository, PlayerRepository, TournamentRepository
 
 router = APIRouter(tags=["content"])
 
@@ -141,3 +141,25 @@ async def get_game(game_id: str, db: AsyncIOMotorDatabase = Depends(get_database
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     return game
+
+
+@router.get("/openings", response_model=Page)
+async def list_openings(
+    query: str = "",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    skip: int | None = Query(default=None, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=200),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    skip, limit = _paging(page, page_size, skip, limit)
+    items, total = await OpeningRepository(db).list(query=query, skip=skip, limit=limit)
+    return _page(items, total, skip, limit)
+
+
+@router.get("/openings/{opening_id}", response_model=Opening)
+async def get_opening(opening_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    opening = await OpeningRepository(db).get(opening_id)
+    if not opening:
+        raise HTTPException(status_code=404, detail="Opening not found")
+    return opening

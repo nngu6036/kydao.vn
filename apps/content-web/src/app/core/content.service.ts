@@ -42,6 +42,11 @@ type ApiGame = Partial<Omit<GameItem, 'move_list'>> & {
   move_list?: string | string[] | null;
 };
 
+type ApiOpening = Partial<OpeningItem> & {
+  id: string;
+  name: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class ContentService {
   private readonly http = inject(HttpClient);
@@ -62,8 +67,8 @@ export class ContentService {
     shareReplay(1)
   );
 
-  readonly openings$ = this.games$.pipe(
-    map(games => this.toOpenings(games)),
+  readonly openings$ = this.fetchPage<ApiOpening>('openings').pipe(
+    map(items => items.map(item => this.toOpening(item))),
     shareReplay(1)
   );
 
@@ -100,7 +105,12 @@ export class ContentService {
   }
 
   getOpeningById(id: string | null): Observable<OpeningItem | null> {
-    return this.openings$.pipe(map(items => items.find(item => item.id === id) ?? null));
+    if (!id) {
+      return this.openings$.pipe(map(() => null));
+    }
+    return this.http.get<ApiOpening>(`${this.baseUrl}/openings/${id}`).pipe(
+      map(item => this.toOpening(item))
+    );
   }
 
   getGamesByTournamentId(tournamentId: string | null): Observable<GameItem[]> {
@@ -123,7 +133,7 @@ export class ContentService {
     );
   }
 
-  private fetchPage<T>(kind: 'players' | 'players/elo-rankings' | 'tournaments' | 'games'): Observable<T[]> {
+  private fetchPage<T>(kind: 'players' | 'players/elo-rankings' | 'tournaments' | 'games' | 'openings'): Observable<T[]> {
     return this.http.get<PageResponse<T>>(`${this.baseUrl}/${kind}`, {
       params: { page: 1, page_size: 200 },
     }).pipe(map(page => page.items));
@@ -183,6 +193,18 @@ export class ContentService {
     };
   }
 
+  private toOpening(item: ApiOpening): OpeningItem {
+    return {
+      id: item.id,
+      parent_id: item.parent_id ?? '',
+      name: item.name,
+      code: item.code ?? '',
+      description: item.description ?? '',
+      games: item.games ?? 0,
+      winRate: item.winRate ?? { red: 0, draw: 0, black: 0 },
+    };
+  }
+
   private toOpenings(games: GameItem[]): OpeningItem[] {
     const grouped = new Map<string, { name: string; id: string; games: GameItem[] }>();
 
@@ -198,7 +220,10 @@ export class ContentService {
 
     return [...grouped.values()].map(group => ({
       id: group.id,
+      parent_id: '',
       name: group.name,
+      code: '',
+      description: '',
       games: group.games.length,
       winRate: this.toWinRate(group.games),
     }));

@@ -5,6 +5,8 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 
+const LAST_LOGIN_EMAIL_KEY = 'chess_elo_last_login_email';
+
 @Component({
   template: `
     <section class="login-page">
@@ -39,8 +41,10 @@ export class LoginPage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  private readonly rememberedEmail = localStorage.getItem(LAST_LOGIN_EMAIL_KEY) ?? '';
+
   readonly form = new FormGroup({
-    username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    username: new FormControl(this.rememberedEmail, { nonNullable: true, validators: [Validators.required] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
 
@@ -64,6 +68,7 @@ export class LoginPage {
 
     this.auth.login(username, password).subscribe({
       next: () => {
+        localStorage.setItem(LAST_LOGIN_EMAIL_KEY, username);
         this.loading = false;
         this.router.navigate(['/dashboard']);
       },

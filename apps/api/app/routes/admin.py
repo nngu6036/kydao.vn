@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.db import get_database
-from app.models import Game, Page, Player, Tournament
-from app.repositories import GameRepository, PlayerRepository, TournamentRepository
+from app.models import Game, Opening, Page, Player, Tournament
+from app.repositories import GameRepository, OpeningRepository, PlayerRepository, TournamentRepository
 from app.security import require_admin_token
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_token)])
@@ -49,6 +49,8 @@ async def players(
     limit: int | None = Query(default=None, ge=1, le=200),
     sort_by: str | None = None,
     sort_dir: str = Query(default="asc", pattern="^(asc|desc)$"),
+    nationality: str | None = Query(default=None),
+    sexuality: str | None = Query(default=None),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
     skip, limit = _paging(page, page_size, skip, limit)
@@ -58,6 +60,8 @@ async def players(
         limit=limit,
         sort_by=sort_by,
         sort_dir=_sort_dir(sort_dir),
+        nationality=nationality,
+        sexuality=sexuality,
     )
     return _page(items, total, skip, limit)
 
@@ -154,6 +158,66 @@ async def delete_game(game_id: str, db: AsyncIOMotorDatabase = Depends(get_datab
     deleted = await GameRepository(db).delete(game_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Game not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/openings", response_model=Page)
+async def openings(
+    query: str = "",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    skip: int | None = Query(default=None, ge=0),
+    limit: int | None = Query(default=None, ge=1, le=200),
+    sort_by: str | None = None,
+    sort_dir: str = Query(default="asc", pattern="^(asc|desc)$"),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    skip, limit = _paging(page, page_size, skip, limit)
+    items, total = await OpeningRepository(db).list(
+        query=query,
+        skip=skip,
+        limit=limit,
+        sort_by=sort_by,
+        sort_dir=_sort_dir(sort_dir),
+    )
+    return _page(items, total, skip, limit)
+
+
+@router.post("/openings", response_model=Opening)
+async def create_opening(payload: dict, db: AsyncIOMotorDatabase = Depends(get_database)):
+    return await OpeningRepository(db).create(payload)
+
+
+@router.get("/openings/search", response_model=list[Opening])
+async def search_openings_by_name(
+    name: str = Query(default=""),
+    limit: int = Query(default=10, ge=1, le=10),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+):
+    return await OpeningRepository(db).search_by_name(name=name, limit=limit)
+
+
+@router.get("/openings/{opening_id}", response_model=Opening)
+async def get_opening(opening_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    opening = await OpeningRepository(db).get(opening_id)
+    if not opening:
+        raise HTTPException(status_code=404, detail="Opening not found")
+    return opening
+
+
+@router.put("/openings/{opening_id}", response_model=Opening)
+async def update_opening(opening_id: str, payload: dict, db: AsyncIOMotorDatabase = Depends(get_database)):
+    opening = await OpeningRepository(db).update(opening_id, payload)
+    if not opening:
+        raise HTTPException(status_code=404, detail="Opening not found")
+    return opening
+
+
+@router.delete("/openings/{opening_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_opening(opening_id: str, db: AsyncIOMotorDatabase = Depends(get_database)):
+    deleted = await OpeningRepository(db).delete(opening_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Opening not found")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

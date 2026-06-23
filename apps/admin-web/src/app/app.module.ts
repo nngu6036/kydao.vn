@@ -13,6 +13,8 @@ import { DashboardPage } from './pages/dashboard.page';
 import { GameEditPage } from './pages/game-edit.page';
 import { GameListPage } from './pages/game-list.page';
 import { LoginPage } from './pages/login.page';
+import { OpeningEditPage } from './pages/opening-edit.page';
+import { OpeningListPage } from './pages/opening-list.page';
 import { PlayerEditPage } from './pages/player-edit.page';
 import { PlayerListPage } from './pages/player-list.page';
 import { TournamentEditPage } from './pages/tournament-edit.page';
@@ -25,6 +27,8 @@ import { TournamentListPage } from './pages/tournament-list.page';
     GameEditPage,
     GameListPage,
     LoginPage,
+    OpeningEditPage,
+    OpeningListPage,
     PlayerEditPage,
     PlayerListPage,
     TournamentEditPage,

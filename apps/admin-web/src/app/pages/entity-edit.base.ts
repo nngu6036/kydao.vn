@@ -375,6 +375,9 @@ export abstract class EntityEditBasePage {
     if (key === 'tournament_id') {
       return 'tournament_name';
     }
+    if (key === 'parent_id') {
+      return 'parent_name';
+    }
     return key;
   }
 

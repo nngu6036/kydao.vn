@@ -64,6 +64,19 @@ class Tournament(BaseModel):
     eloWeight: float | None = None
 
 
+class Opening(BaseModel):
+    id: str
+    parent_id: str | None = None
+    parent_name: str | None = None
+    created_date: datetime | None = None
+    updated_date: datetime | None = None
+    name: str
+    code: str | None = None
+    description: str | None = None
+    move_list: str | list[str] | None = None
+    games: int | None = None
+
+
 class Game(BaseModel):
     model_config = {"use_enum_values": True}
 
