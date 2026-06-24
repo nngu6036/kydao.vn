@@ -11,7 +11,8 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 from app.celery_app import celery_app
 from app.config import get_settings
-from app.models import Game, Player, Tournament, PlayerInitialLevel
+from app.models import Game, Opening, Player, Tournament, PlayerInitialLevel
+from app.xiangqi_utils import XiangqiBoardUtils
 
 
 logger = logging.getLogger("chess_elo.tasks")
@@ -59,6 +60,10 @@ def _tournament_from_document(document: dict[str, Any]) -> Tournament:
 
 def _game_from_document(document: dict[str, Any]) -> Game:
     return Game(**_model_data(document))
+
+
+def _opening_from_document(document: dict[str, Any]) -> Opening:
+    return Opening(**_model_data(document))
 
 
 def _as_object_id(value: Any) -> ObjectId | None:
@@ -150,6 +155,40 @@ def _red_score(result: Any) -> float | None:
     return None
 
 
+def _normalize_move_list(move_list: Any) -> str | None:
+    if isinstance(move_list, list):
+        tokens = [str(token).strip().upper() for token in move_list if str(token).strip()]
+    elif isinstance(move_list, str):
+        tokens = [token.strip().upper() for token in move_list.split(",") if token.strip()]
+    else:
+        return None
+    return ",".join(tokens) if tokens else None
+
+
+def _move_list_variants(move_list: Any) -> set[str]:
+    normalized = _normalize_move_list(move_list)
+    if not normalized:
+        return set()
+
+    variants = {normalized}
+    try:
+        flipped = XiangqiBoardUtils.flip_move_notation_list(normalized)
+    except (ValueError, IndexError):
+        flipped = None
+    flipped = _normalize_move_list(flipped)
+    if flipped:
+        variants.add(flipped)
+    return variants
+
+
+def _move_list_length(variants: set[str]) -> tuple[int, int]:
+    return max((len(variant.split(",")), len(variant)) for variant in variants)
+
+
+def _is_opening_match(opening_variants: set[str], game_variants: set[str]) -> bool:
+    return any(opening in game for opening in opening_variants for game in game_variants)
+
+
 def _expected_score(player_rating: float, opponent_rating: float) -> float:
     return 1 / (1 + pow(10, (opponent_rating - player_rating) / 400))
 
@@ -208,6 +247,10 @@ async def _participant_count_for_tournament(db: AsyncIOMotorDatabase, tournament
 
 async def _game_count_for_tournament(db: AsyncIOMotorDatabase, tournament_id: Any) -> int:
     return await db["games"].count_documents({"tournament_id": {"$in": _id_values(tournament_id)}})
+
+
+async def _game_count_for_opening(db: AsyncIOMotorDatabase, opening_id: Any) -> int:
+    return await db["games"].count_documents({"opening_id": {"$in": _id_values(opening_id)}})
 
 
 async def _update_tournament_participants() -> dict[str, int | str]:
@@ -272,6 +315,119 @@ async def _update_tournament_games() -> dict[str, int | str]:
             "status": "ok",
             "checked": checked,
             "updated": updated,
+            "ran_at": now.isoformat(),
+        }
+    finally:
+        client.close()
+
+
+async def _update_opening_games() -> dict[str, int | str]:
+    settings = get_settings()
+    client = AsyncIOMotorClient(
+        settings.mongodb_uri,
+        appname=f"{settings.mongodb_app_name}-celery",
+    )
+
+    try:
+        await client.admin.command("ping")
+        db = client[settings.mongodb_database]
+        updated = 0
+        checked = 0
+        now = datetime.now(UTC)
+
+        async for document in db["openings"].find({}, {"_id": 1, "name": 1}):
+            opening = _opening_from_document(document)
+            checked += 1
+            games = await _game_count_for_opening(db, opening.id)
+            result = await db["openings"].update_one(
+                {"_id": {"$in": _id_values(opening.id)}},
+                {"$set": {"games": games, "updated_date": now}},
+            )
+            updated += result.modified_count
+
+        return {
+            "status": "ok",
+            "checked": checked,
+            "updated": updated,
+            "ran_at": now.isoformat(),
+        }
+    finally:
+        client.close()
+
+
+async def _load_opening_candidates(db: AsyncIOMotorDatabase) -> list[tuple[Opening, set[str], tuple[int, int]]]:
+    candidates: list[tuple[Opening, set[str], tuple[int, int]]] = []
+    cursor = db["openings"].find({"move_list": {"$exists": True, "$nin": [None, "", []]}})
+    async for document in cursor:
+        opening = _opening_from_document(document)
+        opening_id = _player_key(opening.id)
+        variants = _move_list_variants(opening.move_list)
+        if opening_id and variants:
+            candidates.append((opening, variants, _move_list_length(variants)))
+    return candidates
+
+
+def _find_game_opening(
+    game: Game,
+    openings: list[tuple[Opening, set[str], tuple[int, int]]],
+) -> Opening | None:
+    game_variants = _move_list_variants(game.move_list)
+    if not game_variants:
+        return None
+
+    best_opening: Opening | None = None
+    best_length = (0, 0)
+    for opening, opening_variants, opening_length in openings:
+        if opening_length <= best_length:
+            continue
+        if _is_opening_match(opening_variants, game_variants):
+            best_opening = opening
+            best_length = opening_length
+    return best_opening
+
+
+async def _update_game_openings() -> dict[str, int | str]:
+    settings = get_settings()
+    client = AsyncIOMotorClient(
+        settings.mongodb_uri,
+        appname=f"{settings.mongodb_app_name}-celery",
+    )
+
+    try:
+        await client.admin.command("ping")
+        db = client[settings.mongodb_database]
+        openings = await _load_opening_candidates(db)
+        checked = 0
+        matched = 0
+        updated = 0
+        now = datetime.now(UTC)
+
+        async for document in db["games"].find({"opening_id": None}):
+            game = _game_from_document(document)
+            checked += 1
+            opening = _find_game_opening(game, openings)
+            if not opening:
+                continue
+
+            matched += 1
+            result = await db["games"].update_one(
+                {"_id": {"$in": _id_values(game.id)}},
+                {
+                    "$set": {
+                        "opening_id": opening.id,
+                        "opening": opening.name,
+                        "updated_date": now,
+                    }
+                },
+            )
+            updated += result.modified_count
+
+        return {
+            "status": "ok",
+            "openings_loaded": len(openings),
+            "games_checked": checked,
+            "games_matched": matched,
+            "games_updated": updated,
             "ran_at": now.isoformat(),
         }
     finally:
@@ -457,6 +613,22 @@ def update_tournament_games() -> dict[str, int | str]:
     logger.info("Updating tournament game counts")
     result = asyncio.run(_update_tournament_games())
     logger.info("Updated tournament game counts: %s", result)
+    return result
+
+
+@celery_app.task(name="app.tasks.update_opening_games")
+def update_opening_games() -> dict[str, int | str]:
+    logger.info("Updating opening game counts")
+    result = asyncio.run(_update_opening_games())
+    logger.info("Updated opening game counts: %s", result)
+    return result
+
+
+@celery_app.task(name="app.tasks.update_game_openings")
+def update_game_openings() -> dict[str, int | str]:
+    logger.info("Updating game openings")
+    result = asyncio.run(_update_game_openings())
+    logger.info("Updated game openings: %s", result)
     return result
 
 

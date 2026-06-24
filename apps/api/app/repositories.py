@@ -12,6 +12,7 @@ from pymongo import ReturnDocument
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.models import GameResult
+from app.xiangqi_utils import XiangqiBoardUtils
 
 
 def _stringify_object_ids(value: Any) -> Any:
@@ -440,6 +441,32 @@ class OpeningRepository(MongoRepository):
     search_fields = ("name", "code", "description")
     default_sort = ("name", 1)
 
+    async def create(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = self._write_payload(payload)
+        payload["parent_id"] = await self._find_parent_id(payload.get("move_list"))
+        payload = self._create_payload(payload)
+        result = await self.collection.insert_one(payload)
+        return await self.get(str(result.inserted_id)) or {"id": str(result.inserted_id), **payload}
+
+    async def update(self, id: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+        payload = self._write_payload(payload)
+        document = await self._find_one_and_update(self.collection, id, payload)
+        if not document:
+            return None
+
+        item = _public_doc(document)
+        parent_id = await self._find_parent_id(item.get("move_list"), exclude_id=item["id"])
+        if item.get("parent_id") != parent_id:
+            update = {"$set": {"parent_id": parent_id, "updated_date": _utc_now()}}
+            document = await self.collection.find_one_and_update(
+                {"_id": document["_id"]},
+                update,
+                return_document=ReturnDocument.AFTER,
+            )
+            item = _public_doc(document)
+
+        return await self._with_parent_name(item)
+
     async def get(self, id: str) -> dict[str, Any] | None:
         item = await super().get(id)
         if not item:
@@ -468,6 +495,62 @@ class OpeningRepository(MongoRepository):
         if parent and parent.get("name"):
             item["parent_name"] = parent["name"]
         return item
+
+    async def _find_parent_id(self, move_list: Any, *, exclude_id: str | None = None) -> str | None:
+        child_variants = self._move_list_variants(move_list)
+        if not child_variants:
+            return None
+
+        best_parent_id: str | None = None
+        best_parent_length = (0, 0)
+        cursor = self.collection.find({"move_list": {"$exists": True, "$nin": [None, "", []]}}, {"move_list": 1})
+        async for document in cursor:
+            parent_id = str(document["_id"])
+            if exclude_id and parent_id == exclude_id:
+                continue
+
+            parent_variants = self._move_list_variants(document.get("move_list"))
+            if not parent_variants:
+                continue
+
+            parent_length = self._move_list_length(parent_variants)
+            if parent_length <= best_parent_length:
+                continue
+            if self._is_parent_move_list(parent_variants, child_variants):
+                best_parent_id = parent_id
+                best_parent_length = parent_length
+
+        return best_parent_id
+
+    def _is_parent_move_list(self, parent_variants: set[str], child_variants: set[str]) -> bool:
+        return any(parent in child for parent in parent_variants for child in child_variants)
+
+    def _move_list_length(self, variants: set[str]) -> tuple[int, int]:
+        return max((len(variant.split(",")), len(variant)) for variant in variants)
+
+    def _move_list_variants(self, move_list: Any) -> set[str]:
+        normalized = self._normalize_move_list(move_list)
+        if not normalized:
+            return set()
+
+        variants = {normalized}
+        try:
+            flipped = XiangqiBoardUtils.flip_move_notation_list(normalized)
+        except (ValueError, IndexError):
+            flipped = None
+        flipped = self._normalize_move_list(flipped)
+        if flipped:
+            variants.add(flipped)
+        return variants
+
+    def _normalize_move_list(self, move_list: Any) -> str | None:
+        if isinstance(move_list, list):
+            tokens = [str(token).strip().upper() for token in move_list if str(token).strip()]
+        elif isinstance(move_list, str):
+            tokens = [token.strip().upper() for token in move_list.split(",") if token.strip()]
+        else:
+            return None
+        return ",".join(tokens) if tokens else None
 
 
 class GameRepository(MongoRepository):

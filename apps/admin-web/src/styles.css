@@ -558,6 +558,70 @@ h2 {
   color: #b42318;
 }
 
+.opening-tree-admin {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.opening-tree-head,
+.opening-tree-row-admin {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(90px, 120px) minmax(90px, 120px) 140px;
+  min-width: 760px;
+}
+
+.opening-tree-head {
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.opening-tree-head span,
+.opening-tree-row-admin > span {
+  min-width: 0;
+  padding: 13px 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opening-tree-row-admin {
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.opening-tree-row-admin:hover {
+  background: #f7f9ff;
+}
+
+.opening-tree-name-admin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: calc(14px + var(--opening-depth, 0) * 24px) !important;
+}
+
+.opening-tree-guide {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-left: 2px solid #bac5d8;
+  border-bottom: 2px solid #bac5d8;
+}
+
+.opening-tree-row-admin[style*="--opening-depth: 0"] .opening-tree-guide {
+  border-left-color: transparent;
+}
+
+.opening-tree-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .inline-edit-cell {
   display: flex;
   align-items: center;

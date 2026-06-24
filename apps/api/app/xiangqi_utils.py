@@ -548,6 +548,29 @@ class XiangqiBoardUtils:
         return f"{piece.piece_code}{src_modifier}{src_col}{operator}{dst_modifier}"
 
     @staticmethod
+    def flip_move_notation_list(
+        move_notation_list: str,
+        start_position: str = DEFAULT_POSITION,
+    ) -> List[XiangqiMove]:
+        board = XiangqiBoard()
+        board.FEN = start_position
+        notations: List[str] = []
+        tokens = [token.strip() for token in move_notation_list.split(",") if token.strip()]
+        for index, token in enumerate(tokens):
+            player = FIRST_PLAYER if index % 2 == 0 else SECOND_PLAYER
+            move = XiangqiBoardUtils.parse_move_notation(token, player, board)
+            flip_col_from = COLUMN_LENGTH - move.col_from
+            flip_col_to = COLUMN_LENGTH - move.col_to
+            move.from_pos = f"{flip_col_from}{move.row_from}"
+            move.to_pos = f"{flip_col_to}{move.row_to}"
+            move.notation = XiangqiBoardUtils.get_move_notation(move,board)
+            notations.append(move.notation)
+            board.apply_move(move)
+        return ','.join(notations)
+                          
+
+
+    @staticmethod
     def parse_move_notation_list(
         move_notation_list: str,
         start_position: str = DEFAULT_POSITION,
