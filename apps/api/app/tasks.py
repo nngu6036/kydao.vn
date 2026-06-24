@@ -538,7 +538,7 @@ def _apply_elo_game(
 def _final_rating(player: Player) -> int:
     total_games = player.win + player.draw + player.lose
     if total_games < MINIMUM_MATCHES or player.active_games < MINIMUM_MATCHES:
-        return 0
+        return _initial_rating(player)
 
     rating = round(float(player.elo or 0))
     gender = player.gender
