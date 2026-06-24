@@ -549,6 +549,7 @@ def _final_rating(player: Player) -> int:
 
 async def _update_vn_player_elo() -> dict[str, int | str]:
     settings = get_settings()
+    logger.debug("Connecting to MongoDB for VN male Elo update database=%s", settings.mongodb_database)
     client = AsyncIOMotorClient(
         settings.mongodb_uri,
         appname=f"{settings.mongodb_app_name}-celery",
@@ -558,12 +559,18 @@ async def _update_vn_player_elo() -> dict[str, int | str]:
         await client.admin.command("ping")
         db = client[settings.mongodb_database]
         players = await _load_players(db)
+        logger.debug("Loaded %d male players into Elo pool", len(players))
         tournaments = await _load_tournaments(db)
+        logger.debug("Loaded %d Elo tournaments", len(tournaments))
         games = await _load_elo_games(db, tournaments, set(players))
+        logger.debug("Loaded %d Elo games for male player pool", len(games))
         now = datetime.now(UTC)
 
-        for game in games:
+        for index, game in enumerate(games, start=1):
             _apply_elo_game(game, players, tournaments, now)
+            if index % 1000 == 0:
+                logger.debug("Processed %d/%d Elo games", index, len(games))
+        logger.debug("Finished processing %d Elo games", len(games))
 
         checked = 0
         updated = 0
@@ -588,6 +595,16 @@ async def _update_vn_player_elo() -> dict[str, int | str]:
                 },
             )
             updated += result.modified_count
+            logger.debug(
+                "Elo player result id=%s name=%s rating=%s change=%s games=%s active_games=%s modified=%s",
+                player.id,
+                player.name,
+                rating,
+                rating - int(player.starting_rating or 0),
+                player.win + player.draw + player.lose,
+                player.active_games,
+                result.modified_count,
+            )
 
         return {
             "status": "ok",
